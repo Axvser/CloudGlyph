@@ -40,7 +40,7 @@ jobs:
         run: dotnet workload install wasm-tools
 
       - name: Publish Avalonia Browser
-        run: dotnet publish Docs/VeloxDev.Docs.Browser/VeloxDev.Docs.Browser.csproj -c Release -o publish
+        run: dotnet publish src/CloudGlyph.Browser/CloudGlyph.Browser.csproj -c Release -o publish
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
