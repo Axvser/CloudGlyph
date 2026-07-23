@@ -19,27 +19,19 @@
     <PackageReference Include="VeloxDev.Avalonia" />
   </ItemGroup>
 
-  <!-- Determine Python command: python on Windows, python3 on Unix -->
-  <PropertyGroup>
-	<PythonCmd Condition="$([MSBuild]::IsOsPlatform('Windows'))">python</PythonCmd>
-	<PythonCmd Condition="!$([MSBuild]::IsOsPlatform('Windows'))">python3</PythonCmd>
-  </PropertyGroup>
-
   <!-- Auto-generate languages_index.json and embed as AvaloniaResource before build -->
-  <Target Name="GenerateLanguagesJson" BeforeTargets="BeforeBuild"
-		  Condition="'$(PythonCmd)' != '' And Exists('$(MSBuildProjectDirectory)/Assets/Docs/scripts/gen_lang_index.py')">
-	<Exec Command="$(PythonCmd) &quot;$(MSBuildProjectDirectory)/Assets/Docs/scripts/gen_lang_index.py&quot;"
-		  ConsoleToMSBuild="true"
-		  LogStandardErrorAsError="false"
+  <Target Name="GenerateLanguagesJson" BeforeTargets="BeforeBuild">
+    <Exec Command="python &quot;$(MSBuildProjectDirectory)/Assets/Docs/scripts/gen_lang_index.py&quot;" 
+		  ConsoleToMSBuild="true" 
+		  LogStandardErrorAsError="false" 
 		  StandardOutputImportance="normal" />
   </Target>
 
   <!-- Auto-generate tree.json index from directory structure before build -->
-  <Target Name="GenerateTreeJson" BeforeTargets="BeforeBuild"
-		  Condition="'$(PythonCmd)' != '' And Exists('$(MSBuildProjectDirectory)/Assets/Docs/scripts/gen_tree.py')">
-	<Exec Command="$(PythonCmd) &quot;$(MSBuildProjectDirectory)/Assets/Docs/scripts/gen_tree.py&quot;"
-		  ConsoleToMSBuild="true"
-		  LogStandardErrorAsError="false"
+  <Target Name="GenerateTreeJson" BeforeTargets="BeforeBuild">
+    <Exec Command="python &quot;$(MSBuildProjectDirectory)/Assets/Docs/scripts/gen_tree.py&quot;" 
+		  ConsoleToMSBuild="true" 
+		  LogStandardErrorAsError="false" 
 		  StandardOutputImportance="normal" />
   </Target>
 </Project>
