@@ -152,15 +152,14 @@ git clone https://github.com/<你的用户名>/CloudGlyph.git
 cd CloudGlyph
 ```
 
-### Step 2: 配置 GitHub Pages 部署环境
+### Step 2: 配置 GitHub Pages 构建方式
 
-> 工作流 `.github/workflows/publish.yml` 已写好，无需改动。你需要做的是在 Settings 中授权它部署。
+> 工作流 `.github/workflows/publish.yml` 已写好，无需改动。你需要做的是在 Settings 中告诉 Pages 使用它。
 
-1. **Settings → Environments → New Environment**
-2. **名称填入 `github-pages`**（必须与此一致，工作流中硬编码）
-3. **Deployment branches → Add deployment branch → 输入你的分支名（如 `master`）→ 保存**
+1. **Settings → Pages**
+2. **Build and deployment → Source → 选择 `GitHub Actions`**
 
-完成以上配置后，Pages 即可使用——工作流中的 `actions/deploy-pages@v5` 会自动被 Pages 识别。
+完成以上配置后，Pages 会自动识别工作流中的 `actions/deploy-pages@v5` 并完成部署。
 
 ### Step 3: 触发发布
 
@@ -209,7 +208,7 @@ on:
       - "src/CloudGlyph/Assets/Docs/**"
 ```
 
-并同步更新环境分支保护：**Settings → Environments → github-pages → Deployment branches** 添加目标分支。
+无需其他设置，GitHub Actions 会自动使用工作流中配置的分支。
 
 ---
 

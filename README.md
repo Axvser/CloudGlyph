@@ -157,15 +157,14 @@ git clone https://github.com/<your-username>/CloudGlyph.git
 cd CloudGlyph
 ```
 
-### Step 2: Configure GitHub Pages Deployment Environment
+### Step 2: Configure GitHub Pages Build Source
 
-> The workflow `.github/workflows/publish.yml` is already written — no changes needed. You just need to authorize it for deployment in Settings.
+> The workflow `.github/workflows/publish.yml` is already written — no changes needed. You just need to tell Pages to use it in Settings.
 
-1. **Settings → Environments → New Environment**
-2. **Name it `github-pages`** (must match exactly — hardcoded in the workflow)
-3. **Deployment branches → Add deployment branch → Enter your branch name (e.g., `master`) → Save**
+1. **Settings → Pages**
+2. **Build and deployment → Source → Select `GitHub Actions`**
 
-Once configured, Pages will work — `actions/deploy-pages@v5` in the workflow will be automatically recognized by Pages.
+Once configured, Pages will automatically recognize the `actions/deploy-pages@v5` step in the workflow and complete the deployment.
 
 ### Step 3: Trigger a Publish
 
@@ -214,7 +213,7 @@ on:
       - "src/CloudGlyph/Assets/Docs/**"
 ```
 
-And update the environment branch protection accordingly: **Settings → Environments → github-pages → Deployment branches** — add your target branch.
+No additional settings needed — GitHub Actions will automatically use the branch configured in the workflow.
 
 ---
 
