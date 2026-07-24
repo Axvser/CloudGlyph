@@ -3,6 +3,8 @@
 > **Sub-skill.** Step 8 of the Framework Execution Pipeline. Runs after Step 7 (Review) passes.
 > **Default path phase: Phase 8 (final delivery)**
 
+> **Context:** All paths in this file (e.g. `content/en/0_Welcome/index.md`) are relative to `WIKI_ROOT` — see the master `skills/SKILL.md` §1 for `WIKI_ROOT` determination.
+
 Replaces the generic `0_Welcome/index.md` with a visually rich, project-specific landing page using Cloud Glyph's full inline HTML + CSS rendering capabilities.
 
 ## When to Load
@@ -187,7 +189,7 @@ Before writing the welcome page, verify the source material:
 - [ ] Footer badges reflect real project attributes
 - [ ] Gradient colors match project brand (or defaults used)
 
-## Output Location
+## Output Location (relative to `WIKI_ROOT`)
 
 - English: `content/en/0_Welcome/index.md` — always produced
 - Additional languages: `content/{lang}/0_Welcome/index.md` — only for languages selected in §1 (Language Selection). Default is English only.

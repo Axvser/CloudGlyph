@@ -10,15 +10,60 @@
 
 ## 1. Context & Prerequisites
 
+### Execution Context Variables
+
+At startup, the agent **MUST determine and record** these three context variables. Every path in this document is relative to them.
+
+| Variable | Meaning | How to Determine |
+|---|---|---|
+| `WIKI_ROOT` | The directory containing `skills/` and the Wiki output tree (`src/CloudGlyph/Assets/Docs/`) | See **Deployment Context Detection** below |
+| `PROJECT_ROOT` | The directory containing the target project to document (the user's main codebase) | User-specified directory, or workspace root if unspecified |
+| `SKILLS_BRANCH` | A local-only branch to isolate `skills/` content | User-configured branch name, defaults to `docs/skills` |
+
+**All content output paths** in this document (e.g. `content/en/...`, `src/CloudGlyph/Assets/Docs/...`) are relative to `WIKI_ROOT`. The agent MUST prefix them with `WIKI_ROOT` at runtime.
+
+---
+
+### Deployment Context Detection
+
+This skill system (`skills/SKILL.md`) can be deployed in **two scenarios**. The agent MUST detect which one applies before proceeding:
+
+| Scenario | Detection Signal | `WIKI_ROOT` | `PROJECT_ROOT` |
+|---|---|---|---|
+| **A — Standalone** | `skills/` is at workspace root (e.g. `./skills/SKILL.md` exists), **AND** no nested `.git` repo boundary separates `skills/` from the workspace root | Workspace root | Workspace root |
+| **B — Nested** | `skills/` is NOT at workspace root (e.g. `docs/wiki/skills/SKILL.md`), **OR** there is a nested `.git` directory between workspace root and `skills/` | The parent directory whose child `skills/` contains this file (e.g. `docs/wiki/` if file is `docs/wiki/skills/SKILL.md`) | Workspace root (the user's main project) |
+
+**Detection procedure:**
+
+1. Check if `skills/SKILL.md` (relative to workspace root) is the same file as this one
+   - If **yes** → Scenario A
+   - If **no** → Scenario B; trace upward from this file's location to find the parent that contains `skills/` as a direct child — that is `WIKI_ROOT`
+2. Confirm by checking for a `.git` directory inside `WIKI_ROOT` (Scenario B) vs at workspace root (Scenario A)
+3. If `WIKI_ROOT !== PROJECT_ROOT`, log the split explicitly:
+   > **Nested Wiki repository detected.** `WIKI_ROOT = {WIKI_ROOT}`, `PROJECT_ROOT = {PROJECT_ROOT}`. All Wiki content is written under `WIKI_ROOT`. All code analysis targets `PROJECT_ROOT`.
+
+**⚠️ CRITICAL RULES for Scenario B (Nested):**
+
+- **Git boundary awareness:** `WIKI_ROOT` has its own `.git` history independent from `PROJECT_ROOT`'s Git. **Every Git operation (status, add, commit, push, branch, merge) must be executed from `WIKI_ROOT`**, not from `PROJECT_ROOT` or the workspace root. Running `git` from the wrong directory will silently act on the wrong repository.
+- **Path prefixing:** All paths referenced in this skill file are relative to `WIKI_ROOT`. When the agent reads/writes files, it must prepend `WIKI_ROOT` to these paths. Do NOT prepend `PROJECT_ROOT`.
+- **Code analysis target:** All source code reading, test discovery, and project analysis targets `PROJECT_ROOT`. The agent must navigate to `PROJECT_ROOT` for Steps 2-7 and to `WIKI_ROOT` for file writes and Git operations.
+
 ### Template Repository Identity
 
-Cloud Glyph is a **GitHub template repository** ([github.com/Axvser/CloudGlyph](https://github.com/Axvser/CloudGlyph)). The workspace you are currently in is most likely a **repository cloned from that template**. This means the Wiki authoring pipeline defined here applies universally — it is designed for writing documentation for any software repository.
+Cloud Glyph is a **GitHub template repository** ([github.com/Axvser/CloudGlyph](https://github.com/Axvser/CloudGlyph)). Depending on the deployment scenario detected above:
+
+- **Scenario A (Standalone):** The workspace is a direct clone of the template. The pipeline writes Wiki content for the template's own codebase.
+- **Scenario B (Nested):** The template was cloned as a **subdirectory** inside another project (the user's actual codebase). The `skills/` instructions are used to document the **outer `PROJECT_ROOT`**, not the Cloud Glyph template itself.
+
+In both scenarios, the Wiki authoring pipeline is the same — it is designed for writing documentation for any software project. The difference is **which directory is analyzed** (`PROJECT_ROOT`) and **which directory receives writes + Git operations** (`WIKI_ROOT`).
 
 ### Root Directory Selection
 
-If you have a user interaction tool available, prompt the user to select a **root directory** that contains the target project(s) to document. All Wiki content you produce must cover the entirety of that root directory. If the user does not specify one, use the workspace root itself.
+If you have a user interaction tool available, prompt the user to select a **root directory** that contains the target project(s) to document. This becomes `PROJECT_ROOT`. All Wiki content you produce must cover the entirety of that root directory. If the user does not specify one, use the workspace root as `PROJECT_ROOT`.
 
 **You MUST strictly respect `.gitignore`** — any file or directory matched by `.gitignore` rules is off-limits for analysis; do not read or reference them.
+
+**Nested scenario special check:** After determining `WIKI_ROOT`, verify that the Wiki output tree (`{WIKI_ROOT}/src/CloudGlyph/Assets/Docs/content/`) is NOT excluded by `.gitignore` rules at `PROJECT_ROOT`. If the project's `.gitignore` ignores this path pattern, Wiki files written by the agent will be invisible to the outer project's Git — **notify the user immediately**.
 
 ### Language Selection (Before Pipeline Starts)
 
@@ -35,15 +80,16 @@ If you have a user interaction tool available, prompt the user to select a **roo
 
 The `skills/` directory contains agent instruction files, not user project content. Follow this protocol:
 
-1. Isolate `skills/` content in a **local-only branch** named `docs/skills` that is **never pushed** to the user's remote.
-2. If the user's repository receives updates (new commits on `main` / `master`), merge those changes into `docs/skills` to keep the skills context current.
-3. Under normal circumstances, merging upstream changes into `docs/skills` will **not produce conflicts** since `skills/` does not exist in the upstream. If a conflict arises (e.g., someone created a `skills/` directory in the upstream), **ask the user** how to resolve it.
+1. Isolate `skills/` content in a **local-only branch** named `{SKILLS_BRANCH}` (user-configured, defaults to `docs/skills`) that is **never pushed** to the user's remote.
+2. If the user's repository receives updates (new commits on `main` / `master`), merge those changes into `{SKILLS_BRANCH}` to keep the skills context current.
+3. Under normal circumstances, merging upstream changes into `{SKILLS_BRANCH}` will **not produce conflicts** since `skills/` does not exist in the upstream. If a conflict arises (e.g., someone created a `skills/` directory in the upstream), **ask the user** how to resolve it.
+4. **Scenario B only:** The `{SKILLS_BRANCH}` branch exists in the `WIKI_ROOT` repository, not in `PROJECT_ROOT`. Ensure all branch operations execute from `WIKI_ROOT`.
 
 ---
 
 ## 2. Wiki Content Authoring Model
 
-The agent writes Wiki pages by working with flat files under `src/CloudGlyph/Assets/Docs/content/`.
+The agent writes Wiki pages by working with flat files under `{WIKI_ROOT}/src/CloudGlyph/Assets/Docs/content/`.
 
 ### Directory as Node, One `index.md` Per Page
 
@@ -203,13 +249,47 @@ scenario** — never pre-load them.
 
 ## 5. Framework Step Details
 
-### Step 1: Git Status Confirmation
+### Step 0: Determine Execution Context (Prerequisite)
 
-Cloud Glyph is a GitHub template repository. Confirm with the user whether the workspace is a fresh clone from the template or an existing project. Based on this:
+Before Step 1, the agent **MUST** run the **Deployment Context Detection** defined in §1 to determine `WIKI_ROOT`, `PROJECT_ROOT`, and `SKILLS_BRANCH`. All subsequent steps depend on these variables.
 
-- If fresh from template: proceed normally — no Git strategy needed beyond the `docs/skills` branch rule (§1).
-- If an existing project: ensure `skills/` is on a local-only `docs/skills` branch as specified in §1. **If the branch does not exist, create it now.**
-- Check whether the user's repository has recent upstream changes. If so, consider merging them into `docs/skills` before starting the pipeline to ensure the skills context is current.
+Verify the detection result with the user before proceeding, especially in Scenario B (Nested).
+
+---
+
+### Step 1: Git Status & Context Confirmation
+
+**Important:** All Git operations in this step execute from `WIKI_ROOT` (the repository containing `skills/`), not from `PROJECT_ROOT`. See §1 — Critical Rules for Scenario B.
+
+1. **Confirm deployment scenario** with the user (or log it if no interaction):
+   - Scenario A (Standalone): `WIKI_ROOT == PROJECT_ROOT == workspace root`
+   - Scenario B (Nested): `WIKI_ROOT` (Wiki repo) ≠ `PROJECT_ROOT` (user's codebase)
+
+2. **Check `.gitignore` resilience:**
+   - In Scenario B: Verify that `{WIKI_ROOT}/src/CloudGlyph/Assets/Docs/content/` is NOT ignored by `{PROJECT_ROOT}/.gitignore`. If it is, notify the user: "The Wiki output directory may be invisible to your project's Git. Either remove the matching pattern from `.gitignore` or move the Wiki clone outside the project tree."
+   - If a `.gitignore` file exists at `WIKI_ROOT`, verify it does NOT ignore `src/CloudGlyph/Assets/Docs/content/`.
+
+3. **Git repository sanity check:**
+   - Confirm that `WIKI_ROOT` has a `.git` directory. If not, the Wiki repo was not properly cloned — notify the user.
+   - In Scenario B: Confirm that `PROJECT_ROOT` also has a `.git` directory. The agent must be aware of **two independent Git repositories**.
+
+4. **Branch and skills isolation:**
+   - Ensure `skills/` content lives on the `{SKILLS_BRANCH}` branch inside `WIKI_ROOT`:
+     - If `{SKILLS_BRANCH}` does not exist in `WIKI_ROOT`, create it now from the current branch.
+     - Switch to `{SKILLS_BRANCH}` for the duration of the pipeline.
+   - **Never push `{SKILLS_BRANCH}`** to any remote.
+   - If the `WIKI_ROOT` repository has upstream changes (new commits on default branch), consider merging them into `{SKILLS_BRANCH}` to keep skills context current.
+
+5. **Announce context to user:**
+   ```
+   ┌─────────────────────────────────────────────────────┐
+   │  Execution Context                                  │
+   │  ├─ Scenario:      {A | B}                         │
+   │  ├─ WIKI_ROOT:     {path}  ← Git ops + writes     │
+   │  ├─ PROJECT_ROOT:  {path}  ← code analysis        │
+   │  └─ SKILLS_BRANCH: {name}  ← skills isolation     │
+   └─────────────────────────────────────────────────────┘
+   ```
 
 ### Step 2: Project File Analysis (Read Content, Not Names)
 
@@ -254,7 +334,7 @@ For each functional module identified in Step 2, write a **Quick Start** guide:
 5. **Include expected output** — if the demo/test has assertions, show what the correct result looks like
 6. **Link to the full demo/test file** for readers who want the complete picture
 
-**Format:** Place each module's Quick Start under `content/en/{Project}/quickstart/{module}/`.
+**Format:** Place each module's Quick Start under `content/en/{Project}/quickstart/{module}/` — relative to `WIKI_ROOT`.
 
 ### Step 5: Software Engineering Analysis (with Source Citation)
 
@@ -267,7 +347,7 @@ Produce a rigorous software engineering analysis. Use **Mermaid class diagrams**
 - ✅ When a code snippet is **inferred** (no demo/test available, derived from source reading), **the document must explicitly note this** with a callout like: `> **Note:** No example usage found for this API. The following is inferred from source code analysis.`
 - ✅ Use **KaTeX formulas** for algorithmic complexity or domain-specific calculations where applicable.
 
-**Standard pages** (under `content/{lang}/{Project}/architecture/`):
+**Standard pages** (under `content/{lang}/{Project}/architecture/` — relative to `WIKI_ROOT`):
 
 | Page | Content | Rendering |
 |---|---|---|
@@ -301,7 +381,7 @@ For every public API identified in Steps 2-3, produce a comprehensive reference 
 - **Safe defaults** — document default values and whether they are secure by default
 - **Audit logging** — does the API log calls for security audit?
 
-**Output location:** `content/{lang}/{Project}/api/{Module}/` — one page per major class or API surface.
+**Output location:** `content/{lang}/{Project}/api/{Module}/` — relative to `WIKI_ROOT`. One page per major class or API surface.
 
 ### Step 7: Review & Quality Gate
 
@@ -334,7 +414,7 @@ Replace the generic `0_Welcome/index.md` with a project-specific, visually rich 
 - **Feature grid** — max 8 cards, each mapping to a verified module or capability
 - **Footer badges** — 3-4 key project attributes with glow-dot decorations
 - **Staggered entrance animations** — `animation-delay` cascading across cards
-- **Per-language output** — write `content/{lang}/0_Welcome/index.md` for every language in the active language list (§1). Default is English only.
+- **Per-language output** — write `content/{lang}/0_Welcome/index.md` (relative to `WIKI_ROOT`) for every language in the active language list (§1). Default is English only.
 
 **Source material for content:**
 - Project name → Step 2 (build/config file)
@@ -343,7 +423,7 @@ Replace the generic `0_Welcome/index.md` with a project-specific, visually rich 
 - Feature cards → Steps 3, 5, 6 (verified capabilities)
 - Footer badges → Step 2 (license, platform, dependencies)
 
-**Output location:** `content/{lang}/0_Welcome/index.md`
+**Output location:** `content/{lang}/0_Welcome/index.md` — relative to `WIKI_ROOT`.
 
 ---
 
