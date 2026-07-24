@@ -3,8 +3,6 @@
 > **Entry point.** This file is the root index of the agent's skill system.
 > The agent MUST read this file first, then strictly follow the Framework
 > Execution Pipeline (§3) to produce Wiki content.
->
-> *Auto-generated — do not edit manually. Rerun `python skills/generate_skill_index.py` to regenerate.*
 
 ---
 
@@ -18,7 +16,7 @@ At startup, the agent **MUST determine and record** these three context variable
 |---|---|---|
 | `WIKI_ROOT` | The directory containing `skills/` and the Wiki output tree (`src/CloudGlyph/Assets/Docs/`) | See **Deployment Context Detection** below |
 | `PROJECT_ROOT` | The directory containing the target project to document (the user's main codebase) | User-specified directory, or workspace root if unspecified |
-| `SKILLS_BRANCH` | A local-only branch to isolate `skills/` content | User-configured branch name, defaults to `docs/skills` |
+| `WIKI_BRANCH` | A **developer-created** local-only branch that isolates the Wiki subdirectory from `PROJECT_ROOT`'s default branch | Named by the developer (e.g., `docs/wiki-content`); Agent does **not** create it |
 
 **All content output paths** in this document (e.g. `content/en/...`, `src/CloudGlyph/Assets/Docs/...`) are relative to `WIKI_ROOT`. The agent MUST prefix them with `WIKI_ROOT` at runtime.
 
@@ -76,14 +74,36 @@ If you have a user interaction tool available, prompt the user to select a **roo
 5. **All pipeline steps respect this list.** Only the languages in the active list receive content. Skip translation and mirroring for unselected languages.
 6. If the user cannot be reached (no interaction), produce **English only**.
 
-### Git Branch Strategy for `skills/`
+### The `WIKI_BRANCH` — Developer-Owned Local Branch
 
-The `skills/` directory contains agent instruction files, not user project content. Follow this protocol:
+The Wiki subdirectory (Cloud Glyph template clone) must live on a **dedicated local-only branch** in PROJECT_ROOT, created **by the developer**, never by the Agent.
 
-1. Isolate `skills/` content in a **local-only branch** named `{SKILLS_BRANCH}` (user-configured, defaults to `docs/skills`) that is **never pushed** to the user's remote.
-2. If the user's repository receives updates (new commits on `main` / `master`), merge those changes into `{SKILLS_BRANCH}` to keep the skills context current.
-3. Under normal circumstances, merging upstream changes into `{SKILLS_BRANCH}` will **not produce conflicts** since `skills/` does not exist in the upstream. If a conflict arises (e.g., someone created a `skills/` directory in the upstream), **ask the user** how to resolve it.
-4. **Scenario B only:** The `{SKILLS_BRANCH}` branch exists in the `WIKI_ROOT` repository, not in `PROJECT_ROOT`. Ensure all branch operations execute from `WIKI_ROOT`.
+#### Workflow (Developer Does This — Agent Does NOT)
+
+```bash
+# Inside PROJECT_ROOT (the user's codebase)
+git checkout -b <WIKI_BRANCH>     # e.g., docs/wiki-content
+git clone <wiki-repo-url> <wiki-path>  # e.g., git clone https://github.com/user/MyWiki.git docs/wiki
+git add docs/wiki
+git commit -m "Add Wiki subdirectory"
+# ⚠️ NEVER push this branch — local only
+```
+
+#### Agent Protocol
+
+1. The Agent **detects** the current branch at startup (e.g., `docs/wiki-content`) and records it as `WIKI_BRANCH`
+2. The Agent **does NOT** create, switch, or delete branches — the branch already exists
+3. The Agent's role is to **detect the two Git repositories** and operate correctly:
+   - **Code analysis** targets `PROJECT_ROOT` (the outer repo)
+   - **File writes + Git operations** (add/commit/push) target `WIKI_ROOT` (the inner Wiki repo)
+4. If the Agent detects that `WIKI_ROOT` is **not** inside a local-only branch of `PROJECT_ROOT`, it should warn the user:
+   > "The Wiki subdirectory is not on a dedicated local-only branch. Consider creating one (`git checkout -b <name>`) to avoid polluting your default branch."
+
+#### Branch Purpose
+
+- **Why?** So that `git status` and `git log` on `main`/`master`/`dev` never show Wiki files
+- **Never push** `WIKI_BRANCH` to any remote — it exists solely to isolate the Wiki subdirectory locally
+- If the developer wishes to update the skills (`git pull` upstream template changes), they do so on `WIKI_BRANCH`, then the Agent can merge or rebase as part of Step 1
 
 ---
 
@@ -110,7 +130,7 @@ Based on **AvalonMarkdown v4.0.0** (`markdown-it 14` + `highlight.js 11` + `KaTe
 
 | Category | Syntax / Description |
 |---|---|
-| **Standard Markdown** | Headings `#`, bold `**`, italic `*`, links `[text](url)`, images `![alt](src)`, lists, blockquotes `>`, horizontal rules `---`, tables, strikethrough `~~text~~` |
+| **Standard Markdown** | Headings `#`, bold `**`, italic `*`, images `![alt](src)`, lists, blockquotes `>`, horizontal rules `---`, tables, strikethrough `~~text~~`. ⚠️ **Links `[text](url)` are for external URLs only** — do NOT use them for inter-page navigation within the Wiki (the sidebar tree handles that automatically). |
 | **Math Formulas** | Inline `$E = mc^2$`, block `$$...$$` (KaTeX rendered) |
 | **Code Highlighting** | `` ```lang ... ``` `` where `lang` is any highlight.js supported language (VS Code-style theme) |
 | **Mermaid Diagrams** | `` ```mermaid ... ``` `` supports: flowchart, sequence, pie, git, class diagrams |
@@ -251,7 +271,7 @@ scenario** — never pre-load them.
 
 ### Step 0: Determine Execution Context (Prerequisite)
 
-Before Step 1, the agent **MUST** run the **Deployment Context Detection** defined in §1 to determine `WIKI_ROOT`, `PROJECT_ROOT`, and `SKILLS_BRANCH`. All subsequent steps depend on these variables.
+Before Step 1, the agent **MUST** run the **Deployment Context Detection** defined in §1 to determine `WIKI_ROOT`, `PROJECT_ROOT`, and `WIKI_BRANCH`. All subsequent steps depend on these variables.
 
 Verify the detection result with the user before proceeding, especially in Scenario B (Nested).
 
@@ -273,12 +293,13 @@ Verify the detection result with the user before proceeding, especially in Scena
    - Confirm that `WIKI_ROOT` has a `.git` directory. If not, the Wiki repo was not properly cloned — notify the user.
    - In Scenario B: Confirm that `PROJECT_ROOT` also has a `.git` directory. The agent must be aware of **two independent Git repositories**.
 
-4. **Branch and skills isolation:**
-   - Ensure `skills/` content lives on the `{SKILLS_BRANCH}` branch inside `WIKI_ROOT`:
-     - If `{SKILLS_BRANCH}` does not exist in `WIKI_ROOT`, create it now from the current branch.
-     - Switch to `{SKILLS_BRANCH}` for the duration of the pipeline.
-   - **Never push `{SKILLS_BRANCH}`** to any remote.
-   - If the `WIKI_ROOT` repository has upstream changes (new commits on default branch), consider merging them into `{SKILLS_BRANCH}` to keep skills context current.
+4. **Branch detection (not creation):**
+   - Detect the current branch name in `PROJECT_ROOT` and record it as `WIKI_BRANCH`
+   - Verify that `WIKI_ROOT` is inside a subdirectory of `PROJECT_ROOT` under `WIKI_BRANCH`
+   - If `WIKI_ROOT` is at workspace root (**Scenario A**), no branch isolation is needed — skip this check
+   - **The Agent does NOT create or switch branches.** The developer has already prepared `WIKI_BRANCH` before invoking the Agent.
+   - **Warning:** If `WIKI_ROOT` is on the default branch (e.g., `main`/`master`) in Scenario B, warn the user:
+     > "The Wiki subdirectory lives on the default branch. Consider moving it to a dedicated local-only branch (`git checkout -b <name>`) to avoid polluting your default branch."
 
 5. **Announce context to user:**
    ```
@@ -287,7 +308,7 @@ Verify the detection result with the user before proceeding, especially in Scena
    │  ├─ Scenario:      {A | B}                         │
    │  ├─ WIKI_ROOT:     {path}  ← Git ops + writes     │
    │  ├─ PROJECT_ROOT:  {path}  ← code analysis        │
-   │  └─ SKILLS_BRANCH: {name}  ← skills isolation     │
+   │  └─ WIKI_BRANCH:    {name}  ← Wiki isolation branch (created by developer)
    └─────────────────────────────────────────────────────┘
    ```
 
@@ -319,22 +340,54 @@ Find and analyze how the project's APIs are actually used. The priority order is
 
 **Output:** For each module/feature, produce:
 - The API signatures found (from demos or tests)
-- Real invocation examples (verbatim from demo/test code)
+- **Real invocation examples** — when the demo/test code contains **comments** (inline explanations, annotations, section headers), **preserve them verbatim** in the extracted example. These comments are authored by the developer to aid understanding; stripping them loses context. If you must reconstruct the example (not verbatim), keep the original comments intact wherever they apply.
 - Which source the example came from (demo project path or test file path)
 - The confidence level: `demo` / `test` / `inferred-from-source`
+- **API style classification** — for each API, identify:
+  - **Simple/declarative pattern** (e.g., attributes, decorators, config objects, lambda shorthand) — this is the **Quick Start candidate**
+  - **Advanced/verbose pattern** (e.g., manual interface implementation, class derivation, full customization) — this belongs in **API Deep Dive (Step 6)**
+- ⚠️ **Required markers are NOT discardable** — framework-required annotations, attributes, decorators, and markers (e.g., `[Route]`, `[ApiController]`, `[HttpGet]` in .NET; `@route` in Python/JS; `#[derive]` in Rust) are **part of the API contract, not boilerplate**. They must be preserved in ALL output sections (Quick Start, API Deep Dive, Architecture).
 
 ### Step 4: Quick Start Writing (Per Module, from Demo/Test)
 
 For each functional module identified in Step 2, write a **Quick Start** guide:
 
-1. **Scope the module** — what it does, its main class(es), its key capability
-2. **Extract a runnable example** from the demo or test code found in Step 3
-3. **Reconstruct the setup steps** — installation, configuration, initialization code
-4. **Walk through the example step by step** — what each line does, what to expect
-5. **Include expected output** — if the demo/test has assertions, show what the correct result looks like
-6. **Link to the full demo/test file** for readers who want the complete picture
+1. **Discover the module's full capability through source code reading** — do NOT rely on the project's README, directory names, or module descriptions to infer what a module can do. Instead:
+   - Read the module's **public API surface** (`public` classes, interfaces, extension methods, exported symbols)
+   - Identify **all capability dimensions** (e.g., for a logging module: basic logging → structured logging → filtering → custom formatting → multi-sink)
+   - Only then decide what to present in Quick Start vs defer to API Deep Dive
+   - ❌ **Anti-pattern:** README says "X is a Y tool" → Quick Start only shows Y and misses 5 other capabilities found in source
+2. **Structure the Quick Start as a progressive walkthrough** (由浅入深) — for each capability dimension discovered above, present a **graduated sequence** of examples:
+   - **Shallow:** The absolute simplest usage (1-3 lines, framework-required markers/attributes kept intact)
+   - **Mid:** The most common real-world usage (with reasonable defaults)
+   - **Deep:** A note or brief pointer to even more advanced possibilities (deferred to Step 6)
+3. **Identify the simplest API pattern** from the results of Step 3 — the **most concise, most declarative entry point** (e.g. attribute/annotation, decorator, config object, convenience method). This is the pattern the reader will encounter first; it must be as approachable as possible.
+4. **Extract or reconstruct a runnable example** using that simplest pattern — do NOT default to verbose patterns (manual interface implementation, full class derivation, boilerplate configuration) even if those dominate the demo/test code.
+   - ⚠️ **Respect demo comments:** If the demo code contains explanatory comments (`//`, `#`, `/* */`, etc.), **preserve them** in the extracted example. Do not strip, summarize, or replace them — they carry the developer's intent and save the reader from guessing.
+   - ⚠️ **Required markers are NOT boilerplate:** Framework-required annotations, attributes, and markers (e.g., `[Route]`, `[HttpGet]`, `[ApiController]` in .NET; `@route` in Python/JS/Java; `#[derive]` in Rust) are **part of the API contract** and must be preserved. The distinction:
+     - ✅ **Verbose boilerplate** (discard in Quick Start): Full interface implementation, manual service locator, handwritten configuration class
+     - ❌ **Required markers** (preserve always): Attributes, annotations, decorators that the framework needs to understand the code
+5. **Reconstruct the setup steps** — installation, configuration, initialization code
+6. **Walk through the example step by step** — what each line does, what to expect
+7. **Include expected output** — if the demo/test has assertions, show what the correct result looks like
+8. **Cite the source** — reference the full source file path in a code comment or inline note, so readers can find it in the repository
+9. **Signal the advanced path** — at the end of each Quick Start, add a brief note like:
+   > 💡 *For advanced usage (custom implementations, full customization, edge cases), see the [Module Name] API Reference.*
 
-**Format:** Place each module's Quick Start under `content/en/{Project}/quickstart/{module}/` — relative to `WIKI_ROOT`.
+**Format:** Each module's Quick Start lives under `content/en/{Project}/quickstart/{module}/index.md` — relative to `WIKI_ROOT`. If a module has multiple capability dimensions, create subdirectories under `{module}/` (e.g., `{module}/basic-usage/index.md`, `{module}/configuration/index.md`). **Never put more than one `.md` file in the same directory — each directory must contain exactly one `index.md`.**
+
+**Language-agnostic guidance for identifying the simplest pattern:**
+
+| If the framework supports… | Prefer this in Quick Start | Save this for API Deep Dive |
+|---|---|---|
+| **Attributes/Annotations** | `[Route("/api")]` / `@route("/api")` | Manual routing registration |
+| **Decorators** | `@cache()` / `[Log]` | Decorator factory implementation |
+| **Config objects / lambdas** | `services.AddX(opts => opts.Key = val)` | Custom configuration class |
+| **Convenience methods** | `builder.Build()` | Manual service locator pattern |
+| **Defaults-driven design** | Minimal file with defaults | Full explicit configuration |
+| **Fluent API** | `.WithX().WithY()` | Builder class implementation |
+
+> ⚠️ **Rule of thumb:** If removing an attribute/annotation/decorator would change how the framework interprets the code, it is a **required marker** — do NOT strip it. If removing it only changes the *amount of code the developer writes* but not the *behavior*, it is fair game for simplification.
 
 ### Step 5: Software Engineering Analysis (with Source Citation)
 
@@ -347,20 +400,22 @@ Produce a rigorous software engineering analysis. Use **Mermaid class diagrams**
 - ✅ When a code snippet is **inferred** (no demo/test available, derived from source reading), **the document must explicitly note this** with a callout like: `> **Note:** No example usage found for this API. The following is inferred from source code analysis.`
 - ✅ Use **KaTeX formulas** for algorithmic complexity or domain-specific calculations where applicable.
 
-**Standard pages** (under `content/{lang}/{Project}/architecture/` — relative to `WIKI_ROOT`):
+**Standard pages** — each as a directory containing `index.md` (under `content/{lang}/{Project}/architecture/` — relative to `WIKI_ROOT`):
 
 | Page | Content | Rendering |
 |---|---|---|
-| `01_project_structure.md` | Module map, dependency graph | Mermaid flowchart + tables |
-| `02_class_hierarchy.md` | Core types, interfaces, inheritance | Mermaid class diagram |
-| `03_startup_flow.md` | Bootstrap sequence, DI registration | Mermaid sequence diagram |
-| `04_request_lifecycle.md` | Request → response processing pipeline | Mermaid sequence + flowchart |
-| `05_data_flow.md` | State changes, event-driven patterns | Mermaid flowchart |
-| `06_dependencies.md` | External dependencies and integration points | Tables + arch diagram |
+| `01_project_structure/index.md` | Module map, dependency graph | Mermaid flowchart + tables |
+| `02_class_hierarchy/index.md` | Core types, interfaces, inheritance | Mermaid class diagram |
+| `03_startup_flow/index.md` | Bootstrap sequence, DI registration | Mermaid sequence diagram |
+| `04_request_lifecycle/index.md` | Request → response processing pipeline | Mermaid sequence + flowchart |
+| `05_data_flow/index.md` | State changes, event-driven patterns | Mermaid flowchart |
+| `06_dependencies/index.md` | External dependencies and integration points | Tables + arch diagram |
 
 ### Step 6: API Deep Dive (Semantic + Full-Code + Security)
 
 For every public API identified in Steps 2-3, produce a comprehensive reference page that goes beyond signature documentation to cover:
+
+> **Relationship to Quick Start:** While the Quick Start (Step 4) shows the **single simplest declarative entry point**, the API Deep Dive shows **every pattern** — including the verbose ones (manual implementations, class derivations, full customization, edge cases). This is where you elaborate on what was condensed in the Quick Start.
 
 **Semantic level:**
 - **What problem does this API solve?** — the higher-level intent, not just the method name
@@ -371,7 +426,8 @@ For every public API identified in Steps 2-3, produce a comprehensive reference 
 - **Complete method signature** with all parameters, generics, and return type
 - **Parameter semantics** — not just types, but what each parameter means in the domain
 - **Exception table** — every exception that can be thrown, and under what conditions
-- **Overload resolution** — if multiple overloads exist, explain when each is appropriate
+- **Overload resolution** — if multiple overloads exist, explain when each is appropriate. **Include the verbose patterns** (e.g., full interface implementation) alongside the concise ones (e.g., attribute-based shorthand), and explain the trade-off.
+- **Multiple usage styles** — for APIs that support both declarative and imperative usage (e.g., `[Attribute]` vs programmatic registration), provide examples of both with guidance on when to choose each
 
 **Security coverage:**
 - **Authentication/Authorization requirements** — does this API require specific roles or permissions?
@@ -381,7 +437,7 @@ For every public API identified in Steps 2-3, produce a comprehensive reference 
 - **Safe defaults** — document default values and whether they are secure by default
 - **Audit logging** — does the API log calls for security audit?
 
-**Output location:** `content/{lang}/{Project}/api/{Module}/` — relative to `WIKI_ROOT`. One page per major class or API surface.
+**Output location:** `content/{lang}/{Project}/api/{Module}/index.md` — relative to `WIKI_ROOT`. One `index.md` per major class or API surface, inside its own named directory. If a class has extensive API surface, split into subdirectories (e.g., `api/Renderer/methods/index.md`, `api/Renderer/events/index.md`).
 
 ### Step 7: Review & Quality Gate
 
@@ -393,7 +449,6 @@ This is the **final mandatory step** before delivery. The agent MUST perform all
 - [ ] **Code truth verification** — every code block in non-diagram sections (Quick Start, API Deep Dive) must be checked: open the actual source file and confirm every method name, parameter, and type used actually exists with the documented signature. **No fabricated code**.
 - [ ] **Diagram syntax validation** — re-validate every Mermaid and PlantUML diagram against the Diagram Validation table in §2. No syntax errors permitted.
 - [ ] **Formula validation** — check all KaTeX `$...$` and `$$...$$` blocks for balanced delimiters and correct LaTeX syntax.
-- [ ] **Link integrity** — all `[text](path)` internal references resolve to existing Wiki pages.
 - [ ] **Structural consistency** — numeric prefixes are correct, `index.md` exists in every directory.
 - [ ] **Multi-language parity** — if additional languages were selected in §1, verify all pages exist in every active language directory. Skip this check for unselected languages.
 
@@ -434,7 +489,6 @@ After the 8-step pipeline completes, the agent may inject additional processes b
 | Hook | Trigger | Description |
 |---|---|---|
 | **Terminology Alignment** | Multi-language projects (languages selected in §1) | Scan non-English pages for inconsistent translations of key terms; align against a glossary |
-| **Cross-Reference Validation** | Complex multi-module projects | Check that pages in different modules link to each other where dependencies exist |
 | **Changelog Generation** | Git history available | Generate a release notes page from commit history between tags |
 | **README Export** | Root `README.md` exists | Optionally generate an `index.md` in the Wiki root that mirrors the `README.md` |
 | **Full-Text Search Index** | User request | Build a search-keyword index page mapping terms to the pages where they appear |
