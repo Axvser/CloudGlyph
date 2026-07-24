@@ -1,20 +1,49 @@
 # Cloud Glyph — Agent Skill Index
 
 > **Entry point.** This file is the root index of the agent's skill system.
-> The agent MUST read this file first to understand the Wiki content
-> authoring model, then load sub-skill files by scenario as needed.
->
-> **If the user does not specify an execution path, the agent MUST follow
-> the Default Execution Path (Section 3) automatically.**
+> The agent MUST read this file first, then strictly follow the Framework
+> Execution Pipeline (§3) to produce Wiki content.
 >
 > *Auto-generated — do not edit manually. Rerun `python skills/generate_skill_index.py` to regenerate.*
 
 ---
 
-## 1. Wiki Content Authoring Model
+## 1. Context & Prerequisites
 
-The agent writes Wiki pages for Cloud Glyph by working with flat files under
-`src/CloudGlyph/Assets/Docs/content/`.
+### Template Repository Identity
+
+Cloud Glyph is a **GitHub template repository** ([github.com/Axvser/CloudGlyph](https://github.com/Axvser/CloudGlyph)). The workspace you are currently in is most likely a **repository cloned from that template**. This means the Wiki authoring pipeline defined here applies universally — it is designed for writing documentation for any software repository.
+
+### Root Directory Selection
+
+If you have a user interaction tool available, prompt the user to select a **root directory** that contains the target project(s) to document. All Wiki content you produce must cover the entirety of that root directory. If the user does not specify one, use the workspace root itself.
+
+**You MUST strictly respect `.gitignore`** — any file or directory matched by `.gitignore` rules is off-limits for analysis; do not read or reference them.
+
+### Language Selection (Before Pipeline Starts)
+
+**Default output language is English (`en/`) only.** The agent MUST begin the pipeline with a language selection step:
+
+1. Announce to the user that the Wiki will be written in **English by default**
+2. Ask the user (if interaction tools are available) whether they want **additional languages**. Present the available options from `config/languages.json` (e.g., `zh` for Chinese).
+3. The user may also directly specify languages in their request (e.g., "Write Wiki in English and Japanese")
+4. If the user selects additional languages, set the active language list to `["en", ...selected...]`
+5. **All pipeline steps respect this list.** Only the languages in the active list receive content. Skip translation and mirroring for unselected languages.
+6. If the user cannot be reached (no interaction), produce **English only**.
+
+### Git Branch Strategy for `skills/`
+
+The `skills/` directory contains agent instruction files, not user project content. Follow this protocol:
+
+1. Isolate `skills/` content in a **local-only branch** named `docs/skills` that is **never pushed** to the user's remote.
+2. If the user's repository receives updates (new commits on `main` / `master`), merge those changes into `docs/skills` to keep the skills context current.
+3. Under normal circumstances, merging upstream changes into `docs/skills` will **not produce conflicts** since `skills/` does not exist in the upstream. If a conflict arises (e.g., someone created a `skills/` directory in the upstream), **ask the user** how to resolve it.
+
+---
+
+## 2. Wiki Content Authoring Model
+
+The agent writes Wiki pages by working with flat files under `src/CloudGlyph/Assets/Docs/content/`.
 
 ### Directory as Node, One `index.md` Per Page
 
@@ -64,9 +93,11 @@ Every Mermaid or PlantUML diagram **must** be validated for syntax correctness b
 
 ### Multi-Language
 
-- Language config source file: `config/languages.json`
+- **Default is English-only** (`en/`). Additional languages are opt-in — see §1 (Language Selection).
+- Language config source file: `config/languages.json` — lists all available language codes
 - To add a language, create `content/{code}/` with at least one `index.md`
 - **Never manually edit** `content/languages_index.json` or `content/*/tree.json` (build-generated, listed in `.gitignore`)
+- When multiple languages are active, directory structures must be mirrored across all active languages
 
 ### Reference
 
@@ -74,7 +105,58 @@ For the full project structure, startup flow, and theme mechanism, see the root 
 
 ---
 
-## 2. Sub-Skill Directory Index
+## 3. Framework Execution Pipeline
+
+This is the **mandatory execution sequence**. The agent MUST follow steps 1-8 in order. Pre-insertion hooks and post-insertion hooks may be injected around the core steps based on the project's tech stack or user request.
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PRE-INSERTION HOOKS                      │
+│  (hot-pluggable rule sets auto-injected by tech stack)      │
+│  e.g., .NET conventions, Python packaging, JS toolchain     │
+└─────────────────────────┬───────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Step 1: Git Status Confirmation                            │
+│  Step 2: Project File Analysis (read content, not names)    │
+│  Step 3: Test & Demo Discovery (Demo > Test priority)       │
+│  Step 4: Quick Start Writing (per module, from Demo/Test)   │
+│  Step 5: Software Engineering Analysis (with src citation)  │
+│  Step 6: API Deep Dive (semantic + full-code + security)    │
+│  Step 7: Review & Quality Gate (coverage, truth, syntax)    │
+│  Step 8: Welcome Page (beautiful HTML landing)              │
+└─────────────────────────┬───────────────────────────────────┘
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    POST-INSERTION HOOKS                      │
+│  (pluggable quality processes, e.g., final audit,           │
+│   terminology alignment, cross-reference check)             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Pre-Insertion Hooks (Hot-Pluggable)
+
+The agent should analyze the project's tech stack and **auto-inject** relevant rule sets before executing the standard steps. Use the **Reference Index (§8)** to look up documentation conventions for the detected tech stack and apply them throughout the pipeline.
+
+The agent checks the root for well-known signature files and loads the appropriate convention set:
+
+| Detection File(s) | Tech Stack | Convention Reference |
+|---|---|---|
+| `.slnx` / `.csproj` / `.vbproj` / `.fsproj` | .NET (C#, VB, F#) | §8 — .NET |
+| `Cargo.toml` | Rust | §8 — Rust |
+| `package.json` + `tsconfig.json` | TypeScript | §8 — TypeScript / JavaScript |
+| `package.json` (no `tsconfig.json`) | JavaScript / Node.js | §8 — TypeScript / JavaScript |
+| `pyproject.toml` / `setup.py` | Python | §8 — Python |
+| `go.mod` | Go | §8 — Go |
+| `CMakeLists.txt` / `Makefile` + `.c`/`.cpp` | C / C++ | §8 — C / C++ |
+| `pom.xml` / `build.gradle` | Java | §8 — Java |
+| None of the above | Generic | §8 — Generic / Unknown |
+
+**User-specified**: the user may also directly request specific rule sets or conventions to be applied, overriding auto-detection.
+
+---
+
+## 4. Sub-Skill Directory Index
 
 Sub-skills are organized into independent directories by scenario. The agent MUST
 **only read a sub-skill's `SKILL.md` when the user's request matches that
@@ -111,65 +193,304 @@ scenario** — never pre-load them.
 | `skills/review/SKILL.md` | Wiki content review and quality checks | Review documentation quality, Check for broken links, Audit Wiki content, Validate documentation structure, Ensure rendering compatibility |
 | `skills/translation/SKILL.md` | Cross-language document translation and adaptation | Translate to Chinese, Create Japanese version, Add bilingual support, Translate documentation to another language |
 | `skills/generation/SKILL.md` | Automated Wiki content generation from data or code | Generate API reference, Create changelog from Git, Build glossary from data file, Generate configuration reference, Auto-generate documentation from source |
+
+### Final Delivery
+
+| Path | Scenario | Trigger Keywords |
+|---|---|---|
+| `skills/welcome-page/SKILL.md` | Replace welcome page with beautiful HTML landing | Make the welcome page beautiful, Design a landing page, Replace the welcome page, Create a hero section for the Wiki |
 ---
 
-## 3. Default Execution Path
+## 5. Framework Step Details
 
-**When the user does not explicitly specify how to proceed** (e.g., the user
-simply says "write a Wiki for this repo" without further instructions), the
-agent MUST follow the default path below. Each phase auto-advances to the next
-upon completion.
+### Step 1: Git Status Confirmation
 
-### Path Overview
+Cloud Glyph is a GitHub template repository. Confirm with the user whether the workspace is a fresh clone from the template or an existing project. Based on this:
 
-```
-Phase 1: Repo Reading     →  Phase 2: API Docs       →  Phase 3: SE Analysis
-(understand the repo)       (extract API best practices)  (software engineering analysis)
-                                                           ↓
-                                                      Phase 4: Translation
-                                                      (bilingual output alignment)
-                                                           ↓
-                                                      Phase 5: Review
-                                                      (final quality gate)
-```
+- If fresh from template: proceed normally — no Git strategy needed beyond the `docs/skills` branch rule (§1).
+- If an existing project: ensure `skills/` is on a local-only `docs/skills` branch as specified in §1. **If the branch does not exist, create it now.**
+- Check whether the user's repository has recent upstream changes. If so, consider merging them into `docs/skills` before starting the pipeline to ensure the skills context is current.
 
-### Phase Details
+### Step 2: Project File Analysis (Read Content, Not Names)
 
-| Phase | Sub-Skill Loaded | Output | Delivery Location |
-|---|---|---|---|
-| **Phase 1** | `repo-reading/SKILL.md` | Repo structure notes, module identification, entry points | Intermediate — not written directly to Wiki |
-| **Phase 2** | `api-docs/SKILL.md` | Public API reference docs (parameter tables, examples, edge cases) | `content/en/{Project}/api/` and `content/zh/{Project}/api/` |
-| **Phase 3** | `se-analysis/SKILL.md` | Architecture overview, class diagrams, sequences, flow analysis | `content/en/{Project}/architecture/` and `content/zh/{Project}/architecture/` |
-| **Phase 4** | `translation/SKILL.md` | Ensure bilingual output from phases 2 & 3 is consistent | Fill missing translations, align terminology |
-| **Phase 5** | `review/SKILL.md` | Final quality gate: validate diagrams, verify all API references exist in the target repo, check links and structure | Audit report + corrections applied to all written pages |
+Analyze the root directory's structure by **reading actual file contents**, not by guessing from directory/file names. Directory names can be misleading (e.g., `src/Models` might contain DTOs, not domain models).
 
-### Conventions
+**Procedure** (token-efficient):
+1. **Read entry point files** first — `Program.cs`, `main.rs`, `index.ts`, `main.py`, `cmd/` — to understand the application bootstrap
+2. **Read project definition files** — `.csproj`, `Cargo.toml`, `package.json`, `pyproject.toml` — to understand dependencies, target frameworks, and build configuration
+3. **Read key configuration files** — `appsettings.json`, `tsconfig.json`, `.env.example`, `docker-compose.yml` — to understand runtime setup
+4. **Scan the directory tree** (without reading every file) to build a module map; read only one representative file per directory to confirm its purpose
+5. **Produce a module responsibility map** listing each significant directory, its confirmed purpose (based on content), and its key files
 
-1. **Read before write** — Phase 1 is read-only, producing structured notes for downstream phases
-2. **Phase-by-phase** — Complete one phase before entering the next; no parallelism
-3. **Bilingual by default** — Phases 2 and 3 write to both `en/` and `zh/` directories simultaneously
-4. **Mirrored structure** — English and Chinese directory structures are symmetric mirrors
-5. **Final quality gate** — Phase 5 audits all pages written in phases 2-4 before delivery
+**During this step, consult §8 (Reference Index)** for tech-stack-specific documentation conventions that will guide how you document the project.
 
-### Applicability
+**Rules:**
+- ❌ Never say "X directory is for Y" without reading at least one file in that directory
+- ✅ Read fewer, more strategic files rather than bulk-scanning everything
+- ✅ If a directory contains only generated/cache files (node_modules, bin, obj, .git), skip it
 
-| User says | Follows default path? |
+### Step 3: Test & Demo Discovery (Demo > Test Priority)
+
+Find and analyze how the project's APIs are actually used. The priority order is:
+
+1. **Demo projects/examples** (`samples/`, `examples/`, `demo/`, `*-demo`) — **highest priority**. These show the **intended public usage** of the API. Examine them first.
+2. **Test projects** (`*Test*/`, `*Spec*/`, `tests/`) — second priority. Note that some APIs may only be accessible in tests due to `InternalsVisibleTo` or test-specific build configurations. **Cross-reference with demo code** before concluding an API's public surface.
+3. **Direct source code analysis** — only when neither demo nor test exists for a given module. If you must resort to this, **document must explicitly note** that no example usage was found.
+
+**Output:** For each module/feature, produce:
+- The API signatures found (from demos or tests)
+- Real invocation examples (verbatim from demo/test code)
+- Which source the example came from (demo project path or test file path)
+- The confidence level: `demo` / `test` / `inferred-from-source`
+
+### Step 4: Quick Start Writing (Per Module, from Demo/Test)
+
+For each functional module identified in Step 2, write a **Quick Start** guide:
+
+1. **Scope the module** — what it does, its main class(es), its key capability
+2. **Extract a runnable example** from the demo or test code found in Step 3
+3. **Reconstruct the setup steps** — installation, configuration, initialization code
+4. **Walk through the example step by step** — what each line does, what to expect
+5. **Include expected output** — if the demo/test has assertions, show what the correct result looks like
+6. **Link to the full demo/test file** for readers who want the complete picture
+
+**Format:** Place each module's Quick Start under `content/en/{Project}/quickstart/{module}/`.
+
+### Step 5: Software Engineering Analysis (with Source Citation)
+
+Produce a rigorous software engineering analysis. Use **Mermaid class diagrams** for inheritance and type relationships, **Mermaid sequence diagrams** for execution flows, and **Mermaid flowcharts** for architectural overviews.
+
+**Mandatory rules:**
+- ✅ **Every code snippet** in the analysis must come from an **actual file** in the target repository. After including a code snippet, you MUST be able to state which file and which line range it came from.
+- ✅ **Every diagram** must pass the Diagram Validation checklist (§2).
+- ❌ **Never fabricate** method signatures, class names, or execution flows.
+- ✅ When a code snippet is **inferred** (no demo/test available, derived from source reading), **the document must explicitly note this** with a callout like: `> **Note:** No example usage found for this API. The following is inferred from source code analysis.`
+- ✅ Use **KaTeX formulas** for algorithmic complexity or domain-specific calculations where applicable.
+
+**Standard pages** (under `content/{lang}/{Project}/architecture/`):
+
+| Page | Content | Rendering |
+|---|---|---|
+| `01_project_structure.md` | Module map, dependency graph | Mermaid flowchart + tables |
+| `02_class_hierarchy.md` | Core types, interfaces, inheritance | Mermaid class diagram |
+| `03_startup_flow.md` | Bootstrap sequence, DI registration | Mermaid sequence diagram |
+| `04_request_lifecycle.md` | Request → response processing pipeline | Mermaid sequence + flowchart |
+| `05_data_flow.md` | State changes, event-driven patterns | Mermaid flowchart |
+| `06_dependencies.md` | External dependencies and integration points | Tables + arch diagram |
+
+### Step 6: API Deep Dive (Semantic + Full-Code + Security)
+
+For every public API identified in Steps 2-3, produce a comprehensive reference page that goes beyond signature documentation to cover:
+
+**Semantic level:**
+- **What problem does this API solve?** — the higher-level intent, not just the method name
+- **When to use it vs. alternatives** — decision guidance for the reader
+- **Preconditions and postconditions** — what must be true before calling, what is guaranteed after
+
+**Full-code level:**
+- **Complete method signature** with all parameters, generics, and return type
+- **Parameter semantics** — not just types, but what each parameter means in the domain
+- **Exception table** — every exception that can be thrown, and under what conditions
+- **Overload resolution** — if multiple overloads exist, explain when each is appropriate
+
+**Security coverage:**
+- **Authentication/Authorization requirements** — does this API require specific roles or permissions?
+- **Input validation** — what sanitization or validation does the API perform? What should the caller do?
+- **Rate limiting / throttling** — if applicable, document limits
+- **Data sensitivity** — does this API handle PII, secrets, or other sensitive data?
+- **Safe defaults** — document default values and whether they are secure by default
+- **Audit logging** — does the API log calls for security audit?
+
+**Output location:** `content/{lang}/{Project}/api/{Module}/` — one page per major class or API surface.
+
+### Step 7: Review & Quality Gate
+
+This is the **final mandatory step** before delivery. The agent MUST perform all checks below and correct any issues found. If the user's request matches the "Review" scenario only, this step runs standalone.
+
+**Checklist:**
+
+- [ ] **Module coverage audit** — cross-reference the list of modules identified in Step 2 against the pages written in Steps 4-7. Every module must be represented. If any module was missed, flag it and write its documentation.
+- [ ] **Code truth verification** — every code block in non-diagram sections (Quick Start, API Deep Dive) must be checked: open the actual source file and confirm every method name, parameter, and type used actually exists with the documented signature. **No fabricated code**.
+- [ ] **Diagram syntax validation** — re-validate every Mermaid and PlantUML diagram against the Diagram Validation table in §2. No syntax errors permitted.
+- [ ] **Formula validation** — check all KaTeX `$...$` and `$$...$$` blocks for balanced delimiters and correct LaTeX syntax.
+- [ ] **Link integrity** — all `[text](path)` internal references resolve to existing Wiki pages.
+- [ ] **Structural consistency** — numeric prefixes are correct, `index.md` exists in every directory.
+- [ ] **Multi-language parity** — if additional languages were selected in §1, verify all pages exist in every active language directory. Skip this check for unselected languages.
+
+**Pre-commit flow:**
+1. Run through the checklist
+2. For any failed item, apply corrections immediately
+3. Re-check after corrections
+4. Only when all items are ✅, mark the quality gate as passed
+
+### Step 8: Welcome Page — Beautiful HTML Landing
+
+Replace the generic `0_Welcome/index.md` with a project-specific, visually rich landing page using Cloud Glyph's inline HTML + CSS capabilities. This step **must** be loaded from `welcome-page/SKILL.md` for full instructions and templates.
+
+**Core requirements:**
+- **Zero fabricated content** — every project name, feature, and description must come from Steps 2-6
+- **Reuse Cloud Glyph's battle-tested CSS template** — 4 animations (`float`, `shimmer`, `pop-in`, `glow-pulse`), card-based responsive layout, gradient text effects
+- **3-step user workflow** — adapted to the project's actual use case (install → configure → use)
+- **Feature grid** — max 8 cards, each mapping to a verified module or capability
+- **Footer badges** — 3-4 key project attributes with glow-dot decorations
+- **Staggered entrance animations** — `animation-delay` cascading across cards
+- **Per-language output** — write `content/{lang}/0_Welcome/index.md` for every language in the active language list (§1). Default is English only.
+
+**Source material for content:**
+- Project name → Step 2 (build/config file)
+- Tagline → Step 2 (project overview)
+- Step workflow → Step 4 (Quick Start flow)
+- Feature cards → Steps 3, 5, 6 (verified capabilities)
+- Footer badges → Step 2 (license, platform, dependencies)
+
+**Output location:** `content/{lang}/0_Welcome/index.md`
+
+---
+
+## 6. Post-Insertion Hooks (Pluggable)
+
+After the 8-step pipeline completes, the agent may inject additional processes based on the project's characteristics or user request. These are **optional but recommended**:
+
+| Hook | Trigger | Description |
+|---|---|---|
+| **Terminology Alignment** | Multi-language projects (languages selected in §1) | Scan non-English pages for inconsistent translations of key terms; align against a glossary |
+| **Cross-Reference Validation** | Complex multi-module projects | Check that pages in different modules link to each other where dependencies exist |
+| **Changelog Generation** | Git history available | Generate a release notes page from commit history between tags |
+| **README Export** | Root `README.md` exists | Optionally generate an `index.md` in the Wiki root that mirrors the `README.md` |
+| **Full-Text Search Index** | User request | Build a search-keyword index page mapping terms to the pages where they appear |
+| **Custom User Request** | User specifies | Any additional processing the user requests |
+
+---
+
+## 7. Usage Rules
+
+1. Always start from **this file** — understand context (§1), content model (§2), and the pipeline (§3)
+2. **Execute the pipeline strictly in order** (§5, Steps 1-8) — do not skip steps unless the user explicitly excludes one
+3. Respect pre-insertion hooks (§3) by detecting the project's tech stack before starting Step 1
+4. After completing all 8 steps, apply any relevant post-insertion hooks (§6)
+5. **Notify the user** at each step boundary — announce which step you are starting and which comes next
+6. After completing the task, **do NOT retain** sub-skill context for unrelated future tasks
+7. New sub-skills can be added by creating a directory with `SKILL.md` and running the generator
+
+---
+
+## 8. Reference Index: Documentation Conventions by Tech Stack
+
+This index helps the agent optimize Wiki content for different technology stacks. When the Pre-Insertion Hooks (§3) detect a specific tech stack, the agent SHOULD consult this table to apply the appropriate documentation conventions.
+
+### Detection Key
+
+| Signature Files | Tech Stack | Conventions Apply |
+|---|---|---|
+| `.slnx` / `.sln` / `.csproj` / `.vbproj` / `.fsproj` | .NET (C#, VB, F#) | ✅ |
+| `Cargo.toml` | Rust | ✅ |
+| `package.json` + `tsconfig.json` | TypeScript | ✅ |
+| `package.json` (no `tsconfig.json`) | JavaScript / Node.js | ✅ |
+| `pyproject.toml` / `setup.py` / `requirements.txt` | Python | ✅ |
+| `go.mod` | Go | ✅ |
+| `CMakeLists.txt` / `Makefile` (with `.c`/`.cpp`/`.h` sources) | C / C++ | ✅ |
+| `pom.xml` / `build.gradle` | Java (Maven / Gradle) | ✅ |
+| `Gemfile` | Ruby | ✅ |
+| `*.swift` + `Package.swift` | Swift | ✅ |
+| None of the above detected | Generic / Unknown | ✅ (fallback defaults) |
+
+### .NET (C# / VB / F#)
+
+| Convention | Guidance |
 |---|---|
-| "Write a Wiki for this repo" | ✅ Yes (all 5 phases) |
-| "Analyze this repo and generate docs" | ✅ Yes (all 5 phases) |
-| "Create Wiki pages for project X" | ✅ Yes (all 5 phases) |
-| "Write API docs for this repo" | ❌ No — Phase 2 only |
-| "Draw an architecture diagram" | ❌ No — Phase 3 only |
-| "Review existing Wiki quality" | ❌ No — Phase 5 only |
+| **API doc style** | XML doc comments (`/// <summary>`, `<param>`, `<returns>`, `<exception>`) are standard. Document all `public` types and members. |
+| **Visibility awareness** | `internal` types are not part of public API. `private protected` is implementation detail. Check for `[EditorBrowsable(EditorBrowsableState.Never)]` and `[Obsolete]` attributes. |
+| **Test accessibility** | Watch for `InternalsVisibleTo` in `.csproj` or `AssemblyInfo.cs` — APIs used only in tests via `[InternalsVisibleTo]` are NOT public API. |
+| **Async pattern** | Document `Task` / `Task<T>` / `ValueTask<T>` return types explicitly. Indicate whether methods support cancellation via `CancellationToken`. |
+| **Nullability** | Respect nullable reference types (`string?` vs `string`). Document nullability contracts in the API reference. |
+| **Dependency Injection** | Document which services should be registered in DI and with what lifetime (`AddSingleton`, `AddScoped`, `AddTransient`). |
+| **Configuration** | Document `IOptions<T>` / `IConfiguration` binding patterns if the library uses .NET configuration. |
+| **Naming conventions** | Use `PascalCase` for public members, `camelCase` for parameters, `_camelCase` for private fields. Document any deviation. |
 
----
+### Rust
 
-## 4. Usage Rules
+| Convention | Guidance |
+|---|---|
+| **API doc style** | Rustdoc (`///`, `//!`) is standard. Document all `pub` items. Provide `# Examples` blocks in doc comments. |
+| **Module hierarchy** | Document the `mod.rs` / `lib.rs` structure. Show the re-export tree (`pub use`). |
+| **Traits** | Document required vs provided trait methods. Show blanket implementations. Note trait bounds for generic types. |
+| **Error handling** | Document `Result<T, E>` return types. Show which error variants are possible. If the crate uses `thiserror` or `anyhow`, document the error pattern. |
+| **Feature flags** | Document `Cargo.toml` feature flags and their effects. Show `#[cfg(feature = "...")]` gated APIs. |
+| **Async** | If using `tokio` / `async-std`, document which runtime is required and spawning patterns. |
+| **Naming conventions** | `snake_case` for functions/methods, `PascalCase` for types/traits, `SCREAMING_SNAKE_CASE` for constants. |
 
-1. Always start from **this file** to understand the Wiki content authoring model and available rendering capabilities
-2. Determine the scenario from the user's request:
-   - User did NOT specify an execution strategy → **follow the Default Execution Path (Section 3)**
-   - User specified a specific scenario → load only the corresponding sub-skill
-3. When executing the default path, **notify the user** of the current phase and the next planned phase after each completion
-4. After completing the task, **do NOT retain** sub-skill context for unrelated future tasks
-5. New scenarios can be added at any time by creating a new sub-directory and updating this index
+### TypeScript / JavaScript
+
+| Convention | Guidance |
+|---|---|
+| **API doc style** | JSDoc / TSDoc (`/** */`) is standard. Document all exported functions, classes, and interfaces. |
+| **Module system** | Document whether the project uses ESM (`import`/`export`) or CJS (`require`/`module.exports`). Note `"type": "module"` in `package.json`. |
+| **Type exports** | Distinguish `interface` vs `type` aliases. Document generic type parameters. Note `readonly` and optional (`?`) members. |
+| **Async patterns** | Document `Promise<T>` and `async/await` usage. Note callback-style APIs if they exist. |
+| **Configuration** | Document `tsconfig.json` path aliases (`paths`), `"strict"` mode implications. |
+| **Package exports** | Document the `"exports"` field in `package.json` — which subpaths are public API. |
+| **Testing** | Note the test framework (Jest, Vitest, Mocha). Document test runner configuration if relevant to API usage. |
+| **Naming conventions** | `camelCase` for functions/variables, `PascalCase` for classes/types/interfaces, `UPPER_CASE` for constants. |
+
+### Python
+
+| Convention | Guidance |
+|---|---|
+| **API doc style** | Docstrings (``) are standard. NumPy/Google-style or Sphinx-compatible formats are common. Document all public modules, classes, and functions. |
+| **Module visibility** | `_single_underscore` prefix = internal (not public API). `__dunder__` = special methods. Document `__all__` exports in `__init__.py`. |
+| **Type hints** | Use `def foo(x: int) -> str:` style in modern Python. Document `Optional`, `Union`, `Protocol`, `TypedDict` types. |
+| **Async patterns** | Document `async def` / `await` usage. Note if `asyncio` or `trio` is required. |
+| **Dependency management** | Document `pyproject.toml` / `requirements.txt` dependencies. Note optional extras (`[extra]` in `pyproject.toml`). |
+| **Package structure** | Document the module hierarchy through `__init__.py` re-exports. Show the public surface of the package. |
+| **Naming conventions** | `snake_case` for functions/methods/variables, `PascalCase` for classes, `SCREAMING_SNAKE_CASE` for constants. |
+
+### Go
+
+| Convention | Guidance |
+|---|---|
+| **API doc style** | `godoc` comments (`// FunctionName ...`). Document all exported identifiers. Include runnable `Example` functions. |
+| **Interface conventions** | Document which interfaces the package expects consumers to implement. Show the `io.Reader`/`io.Writer`-style composition patterns. |
+| **Error handling** | Document sentinel errors (`var ErrX = errors.New(...)`) and error types. Show `errors.Is` / `errors.As` patterns. |
+| **Context** | Document functions that take `context.Context` as first parameter. Explain cancellation and deadline behavior. |
+| **Goroutine safety** | Document whether types are safe for concurrent access. Note mutex or channel synchronization patterns. |
+| **Naming conventions** | `camelCase` for unexported, `PascalCase` for exported. `Acronyms` are all-caps (`HTTP`, `URL`). |
+
+### C / C++
+
+| Convention | Guidance |
+|---|---|
+| **API doc style** | Doxygen (`/** */` or `///`) is standard for C++. Plain `/* */` comments are common in C. |
+| **Header/Source separation** | Document `.h` / `.hpp` headers as the public API surface. `.c` / `.cpp` files are implementation details unless they define public symbols. |
+| **Memory management** | Document ownership semantics: who allocates, who frees. Note `malloc`/`free`, `new`/`delete`, `unique_ptr`/`shared_ptr` patterns. |
+| **Preprocessor** | Document `#define` macros, `#ifdef` feature gates, and compile-time configuration options. |
+| **ABI / Linkage** | Note `extern "C"` for C-compatible APIs. Document `dllexport` / `dllimport` if applicable. |
+| **Naming conventions** | `snake_case` (C/STL) or `PascalCase` (many C++ projects). Document the project's specific convention. |
+
+### Java (Maven / Gradle)
+
+| Convention | Guidance |
+|---|---|
+| **API doc style** | Javadoc (`/** */`) is standard. Document all `public` and `protected` members. Include `@param`, `@return`, `@throws` tags. |
+| **Package visibility** | Package-private (no access modifier) is not public API. `public` is the public surface. |
+| **Annotations** | Document relevant annotations: `@Override`, `@Deprecated`, `@Nullable`/`@NonNull`, `@Inject`, `@Bean`, `@Service`. |
+| **Build configuration** | Document Maven (`pom.xml`) or Gradle (`build.gradle`) coordinates for dependency inclusion. |
+| **Module system** | If using Java 9+ modules (`module-info.java`), document which packages are exported. |
+| **Naming conventions** | `PascalCase` for classes/interfaces, `camelCase` for methods/fields, `SCREAMING_SNAKE_CASE` for constants. |
+
+### Generic / Unknown (Fallback)
+
+When the tech stack cannot be determined from well-known signatures, apply these universal conventions:
+
+- **Public API surface**: Document whatever is exported / `public` at the module/package level
+- **Entry points**: Look for standard bootstrap entry points and document startup flow
+- **Configuration**: Document configuration files, environment variables, CLI arguments
+- **Testing**: Document the test framework and how to run tests regardless of language
+- **Dependencies**: Document third-party dependencies and their roles
+- **Naming**: Observe and document the project's actual naming convention (do not enforce one)
+
+### Usage
+
+1. During **Pre-Insertion Hooks** (§3), detect the tech stack from signature files
+2. Consult this index for the matching tech stack conventions
+3. Apply these conventions throughout Steps 2-7 of the pipeline
+4. If multiple tech stacks are detected (e.g., a .NET backend + TypeScript frontend), apply each stack's conventions to the relevant modules
