@@ -15,9 +15,20 @@ Replaces the generic `0_Welcome/index.md` with a visually rich, project-specific
 - "Replace the welcome page"
 - "Create a hero section for the Wiki"
 
-## Mandatory Rule
+## Mandatory Rules
 
+### Zero Fabrication
 **The welcome page must contain ZERO fabricated content.** Every project name, module name, feature description, icon choice, and link must be derived from actual analysis results produced in Steps 2-6. Do not invent features the project does not have.
+
+### Outer Layout is FIXED — Do NOT Modify
+The outer container structure is **fixed** and must be preserved exactly. Do NOT:
+- ❌ Add `overflow: scroll` or `overflow-y: scroll` anywhere
+- ❌ Add `max-height` constraints
+- ❌ Wrap content in a `ScrollViewer`, scroll container, or any additional outer `<div>`
+- ❌ Change `.cg-wrapper`'s `text-align`, `padding`, or `width` properties
+- ❌ Remove or rename the `.cg-wrapper` class
+
+✅ You MAY freely customize: title text, tagline, step-card content and count, feat-card content and count, badge text, colors, emoji choices, animation delays.
 
 ---
 
@@ -48,31 +59,44 @@ The template uses 4 key animations and a card-based responsive layout:
 
 ### HTML Structure
 
-```
-<div class="cg-wrapper">                         ← Wrapper with text-align: center
-  <h1 class="cg-title">
-	<span class="gradient-text">{Project Name}</span>
+```html
+<style>
+  /* ⛔ Keep ALL @keyframes and class definitions intact.
+   *     Do NOT remove, rename, or alter:
+   *     - .cg-wrapper, .step-card, .feat-card, .feat-icon
+   *     - .gradient-text, .gradient-rule, .glow-dot
+   *     - .step-icon, .step-icon-delayed, .step-icon-slow
+   */
+  @keyframes float { ... }
+  @keyframes shimmer { ... }
+  @keyframes pop-in { ... }
+  @keyframes glow-pulse { ... }
+  .cg-wrapper { text-align: center; padding: clamp(24px,5vw,50px) clamp(12px,3vw,28px); width: 100%; }
+  .step-card { ... }
+  .feat-card { ... }
+  .gradient-text { ... }
+  /* ... all other classes — keep as-is, only change gradient colors */
+</style>
+
+<div class="cg-wrapper">                       ← ⛔ FIXED — preserve exactly
+  <h1>                                           ← ✅ Customize freely
+	<span class="gradient-text">{Project}</span>
   </h1>
-  <p class="cg-subtitle">{Tagline}</p>
+  <p>{tagline}</p>
   <hr class="gradient-rule" />
 
-  <!-- Section 1: How it Works / 3 Steps -->
-  <div class="cg-steps">
-	<div class="step-card">Step 1: {action}</div>
-	<div class="step-card">Step 2: {action}</div>
-	<div class="step-card">Step 3: {action}</div>
-  </div>
+  <!-- Section: Entry points → ✅ Customize freely -->
+  <div class="step-card">...</div>
+  <div class="step-card">...</div>
 
-  <!-- Section 2: Feature Grid -->
-  <div class="cg-feats">
-	<div class="feat-card">Feature 1: {desc}</div>
-	<div class="feat-card">Feature 2: {desc}</div>
-	...
-  </div>
+  <!-- Section: Feature grid → ✅ Customize freely -->
+  <div class="feat-card">...</div>
+  <div class="feat-card">...</div>
 
-  <!-- Section 3: Footer badges -->
-  <p class="glow-dot badges">{tags}</p>
-</div>
+  <!-- Section: Footer → ✅ Customize freely -->
+  <span class="glow-dot" style="background: ...;"></span>
+  <a href="https://...">External link</a>
+</div>                                           ← </div> — preserve
 ```
 
 ---

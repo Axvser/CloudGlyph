@@ -109,65 +109,81 @@ git commit -m "Add Wiki subdirectory"
 
 ## 2. Wiki Content Authoring Model
 
-The agent writes Wiki pages by working with flat files under `{WIKI_ROOT}/src/CloudGlyph/Assets/Docs/content/`.
+Content lives under `{WIKI_ROOT}/src/CloudGlyph/Assets/Docs/content/{lang}/`.  
+**The sidebar `tree.json` is the only navigation mechanism.** In-page links `[text](path)` must NEVER be used for local pages — they resolve to invalid `file:///` paths.
 
-### Directory as Node, One `index.md` Per Page
+### Tree = Directory + `index.md`
+
+**Single-project layout (most common):** When only one project is documented besides Cloud Glyph itself, content goes directly under `content/{lang}/` — no extra project-named layer.
 
 ```
-content/en/2_Architecture/overview/index.md   →  tree node "Architecture" > "overview"
-content/en/2_Architecture/deployment/index.md  →  tree node "Architecture" > "deployment"
+content/en/
+├── 0_Welcome/index.md           ← root node "Welcome"
+├── quickstart/index.md           ← root node "quickstart"
+│   ├── mvvm/index.md
+│   └── workflow/index.md
+├── architecture/index.md
+│   ├── 01_project_structure/index.md
+│   └── 02_class_hierarchy/index.md
+└── api/index.md
+    └── VeloxProperty/index.md
 ```
 
-- **Directory name** is the URL-safe path key.
-- **Numeric prefix** (`1_`, `2_`, `2.5_`) controls sort order; it is **stripped** from the displayed title.
-- The prefix-stripped directory name becomes the **page title** (e.g. `2_Architecture` → `"Architecture"`).
-- A directory containing `index.md` becomes a **tree node**; subdirectories become **children**.
-- Encoding: **UTF-8** (required for multi-language).
+**Multi-project layout (several repos documented in same Wiki):** Add a project-named layer for disambiguation.
 
-### Supported Wiki Content Syntax
+```
+content/en/
+├── 0_Welcome/index.md
+└── ProjectA/index.md
+    ├── quickstart/index.md
+    └── architecture/index.md
+└── ProjectB/index.md
+    ├── quickstart/index.md
+    └── architecture/index.md
+```
 
-Based on **AvalonMarkdown v4.0.0** (`markdown-it 14` + `highlight.js 11` + `KaTeX 0.16` + `Mermaid 11` + `plantuml-encoder`), the following syntax is fully supported:
+**Rules (concise):**
 
-| Category | Syntax / Description |
-|---|---|
-| **Standard Markdown** | Headings `#`, bold `**`, italic `*`, images `![alt](src)`, lists, blockquotes `>`, horizontal rules `---`, tables, strikethrough `~~text~~`. ⚠️ **Links `[text](url)` are for external URLs only** — do NOT use them for inter-page navigation within the Wiki (the sidebar tree handles that automatically). |
-| **Math Formulas** | Inline `$E = mc^2$`, block `$$...$$` (KaTeX rendered) |
-| **Code Highlighting** | `` ```lang ... ``` `` where `lang` is any highlight.js supported language (VS Code-style theme) |
-| **Mermaid Diagrams** | `` ```mermaid ... ``` `` supports: flowchart, sequence, pie, git, class diagrams |
-| **PlantUML** | `` ```plantuml ... ``` `` auto-encoded and rendered via PlantUML online service (SVG output, dark/light aware) |
-| **Task Lists** | `- [x] done` / `- [ ] todo` (custom styled checkboxes) |
-| **Footnotes** | `text[^1]` followed by `[^1]: detail` |
-| **Video Embeds** | Direct video files (`.mp4`/`.webm`/`.ogg`/`.mov`/`.avi`/`.mkv`); auto-detected embeds for YouTube, Bilibili, Vimeo |
-| **HTML + CSS** | Full inline HTML support including `<style>`, `<div>`, `<span>`, and `@keyframes` animations |
-| **Preview Config** | Dynamically adjustable: font size, line height, code language labels, copy button toggle, max code block height |
+| # | Rule | Why |
+|---|---|---|
+| 1 | **Every node = directory + `index.md`**. No other markdown file names. | `gen_tree.py` only discovers directories containing `index.md` |
+| 2 | **Every parent in the tree must also have its own `index.md`**. | If `VeloxDev/` lacks `index.md`, all its children are invisible |
+| 3 | **No `[text](local/path/)` links.** External `https://` URLs only. `[text](https://...)` is fine. | Markdown links are rendered in a WebView; relative paths become broken `file:///` |
+| 4 | **Numeric prefixes (`01_`, `02_`)** control sort order and are stripped from display titles. ✅ **Preferred** for explicit ordering. Bare names (e.g. `quickstart`) sort alphabetically — use when prefix is unnecessary. | `sorted(os.listdir())` uses directory names as-is; `_title()` strips `N_` prefix |
+| 5 | **UTF-8 encoding required.** | Multi-language support |
+| 6 | **Never manually edit** `languages_index.json` or `tree.json`. | Build-generated; entries in `.gitignore` |
+
+### Supported Syntax
+
+Based on **AvalonMarkdown v4.0.0** (markdown-it 14 + highlight.js 11 + KaTeX 0.16 + Mermaid 11):
+
+- **Headings**, **bold/italic**, **tables**, **lists**, **blockquotes**, `---`, `~~strikethrough~~`
+- **Math:** `$inline$` and `$$display$$` (KaTeX)
+- **Code:** ```` ```lang```` with highlight.js (VS Code theme)
+- **Mermaid:** ` ```mermaid` — flowchart, sequence, class, pie, git
+- **PlantUML:** ` ```plantuml` — auto-encoded SVG
+- **Footnotes:** `text[^1]` / `[^1]: detail`
+- **Video:** `.mp4`/`.webm`, auto-embed for YouTube/Bilibili/Vimeo
+- **HTML+CSS:** Full `<style>`, `<div>`, `@keyframes` support (for welcome page)
 
 ### Diagram Validation (Mandatory)
 
-Every Mermaid or PlantUML diagram **must** be validated for syntax correctness before the document is committed. Diagrams with syntax errors break rendering for all readers.
+Before writing: mentally trace every connection.  
+After writing: verify:
 
-| Validation Rule | Mermaid | PlantUML |
+| Rule | Mermaid | PlantUML |
 |---|---|---|
-| **Direction & type** | Verify `flowchart`/`sequenceDiagram`/`classDiagram`/`pie`/`git` is correct for the content | Verify `@startuml`/`@enduml` markers are present and balanced |
-| **Arrow syntax** | `->>`/`-->>`/`-x`/`--)` match standard Mermaid arrow rules | `->`/`-->`/`-down->`/`-right->` follow PlantUML arrow convention |
-| **Node/participant labels** | All participants referenced in arrows must be declared | All participants must be declared before use |
-| **Bracket/brace balance** | `{}` `[]` `()` are properly paired — no unclosed blocks | `{}` `[]` `()` are properly paired — no unclosed blocks |
-| **Keyword casing** | Mermaid keywords (`participant`, `loop`, `alt`, `opt`, `rect`) are lowercase | PlantUML keywords (`participant`, `actor`, `boundary`, `note`, `alt`) are lowercase |
-| **Indentation** | Block structures (`loop`/`alt`/`opt`) have consistent indentation to mark scope | Block structures (`alt`/`else`/`group`/`loop`) have consistent indentation |
-| **No ambiguous characters** | Avoid unescaped `"` `(` `)` `[` `]` inside labels — use `()` or `[]` wrapping consistently | Avoid special characters in labels without proper escaping |
-
-**Before writing a diagram**, the agent MUST mentally trace the diagram logic to ensure all connections are valid. **After writing**, the agent MUST re-read the code block as if parsing it and confirm every rule above passes.
+| Direction | `flowchart`/`sequenceDiagram`/`classDiagram`/`pie`/`git` | `@startuml`/`@enduml` balanced |
+| Arrows | `->>` `-->>` `-x` `--)` valid | `->` `-->` follow convention |
+| Participants | All referenced are declared | All declared before use |
+| Brackets | `{}` `[]` `()` paired | `{}` `[]` `()` paired |
+| Keywords | lowercase (`loop`, `alt`, `opt`) | lowercase (`actor`, `note`, `alt`) |
 
 ### Multi-Language
 
-- **Default is English-only** (`en/`). Additional languages are opt-in — see §1 (Language Selection).
-- Language config source file: `config/languages.json` — lists all available language codes
-- To add a language, create `content/{code}/` with at least one `index.md`
-- **Never manually edit** `content/languages_index.json` or `content/*/tree.json` (build-generated, listed in `.gitignore`)
-- When multiple languages are active, directory structures must be mirrored across all active languages
-
-### Reference
-
-For the full project structure, startup flow, and theme mechanism, see the root [`SKILL.md`](../SKILL.md).
+- Default **English-only** (`en/`). Additional languages opt-in via §1.
+- All active languages must **mirror the exact same directory tree**.
+- Source: `config/languages.json` maps codes → display names.
 
 ---
 
@@ -372,7 +388,7 @@ For each functional module identified in Step 2, write a **Quick Start** guide:
 7. **Include expected output** — if the demo/test has assertions, show what the correct result looks like
 8. **Cite the source** — reference the full source file path in a code comment or inline note, so readers can find it in the repository
 9. **Signal the advanced path** — at the end of each Quick Start, add a brief note like:
-   > 💡 *For advanced usage (custom implementations, full customization, edge cases), see the [Module Name] API Reference.*
+   > 💡 *For advanced usage (custom implementations, full customization, edge cases), see the API Reference (Module Name) in the sidebar.*
 
 **Format:** Each module's Quick Start lives under `content/en/{Project}/quickstart/{module}/index.md` — relative to `WIKI_ROOT`. If a module has multiple capability dimensions, create subdirectories under `{module}/` (e.g., `{module}/basic-usage/index.md`, `{module}/configuration/index.md`). **Never put more than one `.md` file in the same directory — each directory must contain exactly one `index.md`.**
 
@@ -451,6 +467,7 @@ This is the **final mandatory step** before delivery. The agent MUST perform all
 - [ ] **Formula validation** — check all KaTeX `$...$` and `$$...$$` blocks for balanced delimiters and correct LaTeX syntax.
 - [ ] **Structural consistency** — numeric prefixes are correct, `index.md` exists in every directory.
 - [ ] **Multi-language parity** — if additional languages were selected in §1, verify all pages exist in every active language directory. Skip this check for unselected languages.
+- [ ] **No local markdown links** — verify NO `[text](local/path/)` patterns exist in any page (sidebar is the only navigation). External `https://` links are fine.
 
 **Pre-commit flow:**
 1. Run through the checklist
@@ -461,6 +478,9 @@ This is the **final mandatory step** before delivery. The agent MUST perform all
 ### Step 8: Welcome Page — Beautiful HTML Landing
 
 Replace the generic `0_Welcome/index.md` with a project-specific, visually rich landing page using Cloud Glyph's inline HTML + CSS capabilities. This step **must** be loaded from `welcome-page/SKILL.md` for full instructions and templates.
+
+**⛔ CRITICAL: Outer layout is FIXED — do NOT modify it.**
+The outer container (`.cg-wrapper` div with `text-align: center; padding: clamp(...); width: 100%`) must be preserved exactly as-is. Do NOT add outer wrappers (no `overflow: scroll`, no `max-height`, no `ScrollViewer`). Only the **inner content** (title text, step cards, feature grid, badges) may be customized.
 
 **Core requirements:**
 - **Zero fabricated content** — every project name, feature, and description must come from Steps 2-6
