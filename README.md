@@ -1,8 +1,8 @@
-<p align="center">
-  <img src="src/CloudGlyph/Assets/avalonia-logo.ico" width="64" alt="CloudGlyph" />
-</p>
+<h1 align="center">Cloud Glyph</h1>
 
-<h1 align="center">CloudGlyph</h1>
+<p align="center">
+  Built with <a href="https://www.avaloniaui.net/">Avalonia UI</a> framework
+</p>
 
 <p align="center">
   <strong>Agent Write → One-Click Deploy to GitHub Pages</strong>
@@ -11,7 +11,6 @@
 </p>
 
 <p align="center">
-  <a href="https://axvser.github.io/CloudGlyph/" target="_blank">🌐 Live Demo</a> •
   <a href="README.zh.md">🇨🇳 中文版本</a>
 </p>
 
@@ -34,7 +33,7 @@
 > 3. **Framework Execution Pipeline** — a mandatory 8-step pipeline: Git status → project analysis → test/demo discovery → quick start writing → software engineering analysis → API deep dive → review & quality gate → welcome page landing, with hot-pluggable pre/post hooks
 > 4. **Sub-Skill Directory Index** — 12+ specialized sub-skills loaded on demand for specific scenarios
 >
-> Follow the pipeline strictly in order. Every diagram must pass syntax validation. Every code snippet must be verified against actual source files. Do not fabricate APIs.
+> Follow the pipeline strictly in order.
 
 ---
 
