@@ -1,196 +1,73 @@
-# Welcome Page — Step 8: Replace Welcome Page with Beautiful HTML Landing
+# 欢迎页
 
-> **Sub-skill.** Step 8 of the Framework Execution Pipeline. Runs after Step 7 (Review) passes.
-> **Default path phase: Phase 8 (final delivery)**
+## 职责
 
-> **Context:** All paths in this file (e.g. `content/en/0_Welcome/index.md`) are relative to `WIKI_ROOT` — see the master `skills/SKILL.md` §1 for `WIKI_ROOT` determination.
+替换默认的 `0_Welcome/index.md` 为带有 CSS 动画和卡片布局的美观 HTML 着陆页。
 
-Replaces the generic `0_Welcome/index.md` with a visually rich, project-specific landing page using Cloud Glyph's full inline HTML + CSS rendering capabilities.
+## 前置要求
 
-## When to Load
+这是工作流的最后一步。必须等待所有内容编写完成后再执行。
 
-- Step 8 of the default pipeline (auto-loaded)
-- "Make the welcome page beautiful"
-- "Design a landing page"
-- "Replace the welcome page"
-- "Create a hero section for the Wiki"
+## 核心规则
 
-## Mandatory Rules
+### 禁止编造
 
-### Zero Fabrication
-**The welcome page must contain ZERO fabricated content.** Every project name, module name, feature description, icon choice, and link must be derived from actual analysis results produced in Steps 2-6. Do not invent features the project does not have.
+欢迎页中的一切内容必须来自实际分析结果。项目名、模块名、功能描述、图标选择、链接都必须能在之前步骤中找到依据。
 
-### Outer Layout is FIXED — Do NOT Modify
-The outer container structure is **fixed** and must be preserved exactly. Do NOT:
-- ❌ Add `overflow: scroll` or `overflow-y: scroll` anywhere
-- ❌ Add `max-height` constraints
-- ❌ Wrap content in a `ScrollViewer`, scroll container, or any additional outer `<div>`
-- ❌ Change `.cg-wrapper`'s `text-align`, `padding`, or `width` properties
-- ❌ Remove or rename the `.cg-wrapper` class
-
-✅ You MAY freely customize: title text, tagline, step-card content and count, feat-card content and count, badge text, colors, emoji choices, animation delays.
-
----
-
-## Template Reference: Cloud Glyph Welcome Page
-
-The existing Cloud Glyph welcome page (`content/en/0_Welcome/index.md`) provides a battle-tested template. Below is an annotated summary of its structure:
-
-### CSS Architecture
-
-The template uses 4 key animations and a card-based responsive layout:
-
-| CSS Component | Purpose | Customization for Your Project |
-|---|---|---|
-| `@keyframes float` | Gentle vertical hover on icons | Keep — universal |
-| `@keyframes shimmer` | Animated gradient on title text | Keep — universal |
-| `@keyframes pop-in` | Staggered entrance animation on cards | Keep — universal |
-| `@keyframes glow-pulse` | Pulsing glow on decorative dots | Keep — universal |
-| `.step-card` | 3-step workflow cards with hover lift | Adapt text content only |
-| `.feat-card` | Feature grid with hover scale+rotate | Adapt text content only |
-| `.gradient-text` | Rainbow shimmer text effect | Keep — change colors to match project brand |
-| `.gradient-rule` | Thin gradient divider | Keep — change colors to match project brand |
-
-**Key CSS techniques used** (reusable):
-- `clamp(min, preferred, max)` for fluid responsive sizing
-- `color-mix(in srgb, ...)` for dynamic hover effects that respect the theme
-- `will-change: transform, opacity` for GPU-accelerated animations
-- `cubic-bezier(0.34, 1.56, 0.64, 1)` for elastic "pop" transitions
-
-### HTML Structure
+### 外层容器固定
 
 ```html
-<style>
-  /* ⛔ Keep ALL @keyframes and class definitions intact.
-   *     Do NOT remove, rename, or alter:
-   *     - .cg-wrapper, .step-card, .feat-card, .feat-icon
-   *     - .gradient-text, .gradient-rule, .glow-dot
-   *     - .step-icon, .step-icon-delayed, .step-icon-slow
-   */
-  @keyframes float { ... }
-  @keyframes shimmer { ... }
-  @keyframes pop-in { ... }
-  @keyframes glow-pulse { ... }
-  .cg-wrapper { text-align: center; padding: clamp(24px,5vw,50px) clamp(12px,3vw,28px); width: 100%; }
-  .step-card { ... }
-  .feat-card { ... }
-  .gradient-text { ... }
-  /* ... all other classes — keep as-is, only change gradient colors */
-</style>
-
-<div class="cg-wrapper">                       ← ⛔ FIXED — preserve exactly
-  <h1>                                           ← ✅ Customize freely
-	<span class="gradient-text">{Project}</span>
-  </h1>
-  <p>{tagline}</p>
-  <hr class="gradient-rule" />
-
-  <!-- Section: Entry points → ✅ Customize freely -->
-  <div class="step-card">...</div>
-  <div class="step-card">...</div>
-
-  <!-- Section: Feature grid → ✅ Customize freely -->
-  <div class="feat-card">...</div>
-  <div class="feat-card">...</div>
-
-  <!-- Section: Footer → ✅ Customize freely -->
-  <span class="glow-dot" style="background: ...;"></span>
-  <a href="https://...">External link</a>
-</div>                                           ← </div> — preserve
-```
-
----
-
-## How to Write the Welcome Page for Any Project
-
-### Step A: Gather Information from Prior Steps
-
-| Information Source | What to Extract |
-|---|---|
-| Step 2 — Project Analysis | Project name, tech stack, module list (the 3-8 core modules) |
-| Step 3 — Test/Demo Discovery | Key capabilities confirmed by actual code |
-| Step 4 — Quick Start | The primary use case / "hello world" flow |
-| Step 5 — Architecture | Architecture diagram content (can simplify for hero) |
-| Step 6 — API Deep Dive | Core public API categories |
-| Step 7 — Review | Corrected module names and verified feature list |
-
-### Step B: Structure the 3-Step Workflow
-
-The 3 steps should tell the **user's story**, not the Cloud Glyph story. For example:
-
-| Project Type | Step 1 | Step 2 | Step 3 |
-|---|---|---|---|
-| **Library** | Install (`pip install / dotnet add`) | Initialize | Use |
-| **Web API** | Configure | Send Request | Handle Response |
-| **CLI Tool** | Install | Run Command | Parse Output |
-| **Framework** | Create Project | Add Components | Build & Deploy |
-
-### Step C: Build the Feature Grid
-
-Each feature card must map to a **real, verified capability** from Steps 2-6. Format:
-
-```
-<div class="feat-card cg-feat">
-  <span class="feat-icon">{emoji}</span> {Feature Name}<br>
-  <span style="opacity: 0.6;">{short description}</span>
+<div class="cg-wrapper">    ← 此容器不可修改
+  <!-- 内部内容可自定义 -->
 </div>
 ```
 
-**Guidelines for feature cards:**
-- **8 cards maximum** — prioritize the most distinctive capabilities
-- Each card = one verified module or cross-cutting concern
-- The `<br><span>` subtitle gives a concrete example or sub-feature
-- Emoji should visually represent the capability
+禁止：`overflow: scroll`、`max-height`、额外 `<div>` 包裹、修改 `cg-wrapper` 的 `text-align`/`padding`/`width`。
 
-### Step D: Footer Badges
+## 编写步骤
 
-Use `glow-dot` spans to list 3-4 key project attributes:
+### Step A: 收集信息
 
-```
-<span class="glow-dot" style="background: {color1};"></span>
-{Attribute 1}
-<span class="glow-dot" style="background: {color2};"></span>
-{Attribute 2}
-```
+| 来源 | 提取内容 |
+|---|---|
+| 技术栈分析 | 项目名、技术栈、核心模块列表（3-8 个） |
+| 快速开始 | 主要用例流程 |
+| APIs | 核心公开 API 分类 |
 
-Examples: "MIT License", "Cross-platform", "Zero dependencies", "Type-safe", "Production-ready"
+### Step B: 构建 3 步工作流
 
----
+根据项目类型设计用户故事：
 
-## Section-Specific Customization
+| 项目类型 | 步骤 1 | 步骤 2 | 步骤 3 |
+|---|---|---|---|
+| 类库 | 安装 | 初始化 | 使用 |
+| Web API | 配置 | 发送请求 | 处理响应 |
+| CLI 工具 | 安装 | 运行命令 | 解析输出 |
+| 框架 | 创建项目 | 添加组件 | 构建部署 |
 
-### Title & Tagline
+### Step C: 构建功能网格
 
 ```html
-<h1 class="cg-title">
-  <span class="gradient-text">{Project Name}</span>
-</h1>
-<p class="cg-subtitle">
-  {One-line tagline} · {Key differentiator}
-</p>
+<div class="feat-card cg-feat">
+  <span class="feat-icon">⚡</span> 高性能<br>
+  <span style="opacity: 0.6;">支持每秒 10 万请求</span>
+</div>
 ```
 
-- **Project name**: from Step 2 analysis (read from csproj, package.json, Cargo.toml, etc.)
-- **Tagline**: a 4-8 word description of what the project does
-- **Differentiator**: the single most notable characteristic (language, platform, architecture)
+最多 8 个卡片，每张对应一个经过验证的模块。
 
-### Gradient Colors
+### Step D: 底部徽章
 
-The `gradient-text` and `gradient-rule` classes use `#4a9eff, #a78bfa, #f472b6` as defaults. Customize these to match the project's brand:
-
-```css
-.gradient-text {
-  background: linear-gradient(135deg, {color1}, {color2}, {color3}, {color1});
-}
+```html
+<span class="glow-dot" style="background: #4CAF50;"></span>
+MIT License
+<span class="glow-dot" style="background: #2196F3;"></span>
+跨平台
 ```
 
-Choose colors from the project's logo, documentation, or established brand palette. If no brand colors are evident, keep the defaults.
+## 输出位置
 
-### Staggered Animation Delays
 
-Cards use `animation-delay` to create cascading entrance effects:
-
-| Card Position | Delay Increment | Example |
 |---|---|---|
 | 1st card | `0s` | `style="animation-delay: 0s;"` |
 | 2nd card | `0.05-0.12s` | `style="animation-delay: 0.05s;"` |

@@ -1,0 +1,12 @@
+[#group] 内容编写
+
+[#route] skills/copyright/SKILL.md
+
+[#description]
+版权 — 编写版权声明与授权信息
+
+[#hook]
+- "编写版权声明"
+- "记录许可证信息"
+- "添加贡献者署名"
+- "生成授权说明"

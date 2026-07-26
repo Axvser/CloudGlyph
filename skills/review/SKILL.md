@@ -1,21 +1,43 @@
-# Review — Wiki Content Review & Quality Checks
+# 审核
 
-> **Sub-skill.** Load only when the user asks to review Wiki documentation quality.
-> **Default path phase: Phase 5 (final quality gate)**
+## 职责
 
-Audits Wiki content for broken links, structural consistency, rendering compatibility, multi-language parity, and **API existence verification** — every API reference in the written docs must be confirmed to exist in the target repository's source code.
+对所有生成的 Wiki 内容进行系统审查，确保质量、准确性和一致性。
 
-## When to Load
+## 检查清单
 
-- "Review documentation quality"
-- "Check for broken links"
-- "Audit Wiki content"
-- "Validate documentation structure"
-- "Ensure rendering compatibility"
+### 模块覆盖率审计
 
-## Checklist
+- [ ] 对照模块列表，检查所有模块是否都已写入文档
+- [ ] 遗漏的模块立即补写
 
-- [ ] **Broken link detection** — All `[text](path)` references resolve correctly
+### 代码真实性验证
+
+- [ ] 每个代码块中涉及的方法名、参数名、类型确认存在于实际源码中
+- [ ] 不存在编造的代码
+
+### 图语法验证
+
+- [ ] Mermaid：方向/类型有效、参与者已声明、括号平衡
+- [ ] KaTeX：`$...$` 和 `$$...$$` 成对平衡
+- [ ] PlantUML：`@startuml`/`@enduml` 成对、参与者已声明
+
+### 结构一致性
+
+- [ ] 数字前缀正确（如 `01_`、`02_`）
+- [ ] 每个目录都存在 `index.md`
+- [ ] 不存在本地 Markdown 链接（`[text](local/path/)`）
+
+### 跨语言对等
+
+- [ ] 如果启用了多语言，检查所有页面在所有语言中是否存在
+
+## 预提交流程
+
+1. 逐项检查清单
+2. 对任何失败项立即修正
+3. 修正后重新检查
+4. 全部 ✅ 后通过质量门
 - [ ] **Structural consistency** — Numeric prefixes follow conventions, all required `index.md` files exist
 - [ ] **Rendering compatibility** — Mermaid/KaTeX/PlantUML syntax is correct and will render in AvalonMarkdown
       - [ ] Mermaid: direction/type valid, arrows correct, participants declared, brackets balanced

@@ -1,0 +1,13 @@
+[#group] 质量保障
+
+[#route] skills/review/SKILL.md
+
+[#description]
+审核 — Wiki 内容审查与质量检查
+
+[#hook]
+- "审查文档质量"
+- "检查链接有效性"
+- "审计 Wiki 内容"
+- "验证文档结构"
+- "确保渲染兼容性"

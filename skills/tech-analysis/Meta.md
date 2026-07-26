@@ -1,0 +1,13 @@
+[#group] 基础设置
+
+[#route] skills/tech-analysis/SKILL.md
+
+[#description]
+技术栈分析 — 识别项目技术栈、入口点与依赖链
+
+[#hook]
+- "分析此仓库"
+- "理解项目结构"
+- "找到入口点"
+- "了解此项目做什么"
+- "项目是如何组织的"

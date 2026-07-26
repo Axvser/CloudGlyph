@@ -1,113 +1,209 @@
-# SE Analysis — Software Engineering Analysis & Wiki Documentation
+# 软件工程分析
 
-> **Sub-skill.** Load only when the user asks to perform a software engineering analysis on an external repository.
-> **Default path phase: Phase 3**
-> **Prerequisite:** Phases 1 (repo-reading) and 2 (api-docs) complete
+## 职责
 
-Performs professional software engineering analysis including architecture, class hierarchies, execution sequences, and API flows, rendered using Mermaid diagrams, PlantUML, and KaTeX.
+产出严谨的软件工程分析文档。使用 **PlantUML** 描绘 API 调用时序图，用 **Mermaid** 展示类层次、架构流程图，用 **KaTeX** 表达算法复杂度。
 
-## When to Load
+## 强制性规则
 
-- "Software engineering analysis"
-- "Draw architecture diagram"
-- "Analyze source code flow"
-- "Create class hierarchy documentation"
-- "Document request lifecycle"
+- 每一个代码片段**必须来自实际文件**，并注明文件路径和行范围
+- 所有图必须通过语法验证（Mermaid/PlantUML/KaTeX）
+- 禁止编造方法签名、类名或执行流
+- 如果代码是推断的（无示例可用），必须用标注明确注明
 
-## Analysis Dimensions
+## 页面规划
 
-| Dimension | Output Format | Cloud Glyph Rendering |
+| 页面 | 内容 | 渲染方式 |
 |---|---|---|
-| Project structure | Directory tree + module descriptions | Markdown lists |
-| Class/inheritance relationships | Class diagram | ` ```mermaid classDiagram ` |
-| Execution flow | Sequence diagram | ` ```mermaid sequenceDiagram ` |
-| Component architecture | Architecture diagram | ` ```mermaid flowchart ` or PlantUML |
-| API execution process | Request-response sequence + code references | Sequence diagram + code blocks |
-| Algorithm/complexity | Formulas | KaTeX `$$...$$` |
+| `01_project_structure/index.md` | 模块地图、包依赖图 | Mermaid flowchart + 表格 |
+| `02_class_hierarchy/index.md` | 核心类型、接口、继承关系 | Mermaid classDiagram |
+| `03_startup_flow/index.md` | 引导序列、DI 注册 | PlantUML 时序图 |
+| `04_request_lifecycle/index.md` | 请求→响应完整管道 | PlantUML 时序图 + flowchart |
+| `05_api_sequences/index.md` | API 调用时序（核心业务场景） | **PlantUML** |
+| `06_data_flow/index.md` | 状态变化、事件驱动、消息传递 | Mermaid flowchart |
+| `07_dependencies/index.md` | 外部依赖、中间件、第三方集成 | 表格 + 架构图 |
 
-## Standard Analysis Deliverables
+## API 调用时序图（PlantUML）
 
-Create the following pages under `content/{lang}/{Project}/architecture/`:
+这是本技能的**核心交付物**。对于每个核心 API 端点，产出一张 PlantUML 时序图，展示完整的调用链路。
 
-| Page | Content | Recommended Rendering |
-|---|---|---|
-| `index.md` | Project overview, tech stack summary | Tables + lists |
-| `01_project_structure.md` | Directory structure, module division, dependencies | Directory tree + Mermaid arch diagram |
-| `02_class_hierarchy.md` | Core class/interface inheritance and implementation | Mermaid class diagram |
-| `03_startup_flow.md` | Application startup, DI registration | Mermaid sequence diagram |
-| `04_request_lifecycle.md` | Full request processing pipeline | Mermaid flowchart + sequence diagram |
-| `05_key_scenarios.md` | Critical business scenario execution paths | Sequence diagram + code references |
-| `06_data_flow.md` | Data flow, state changes, event-driven patterns | Mermaid flowchart |
-| `07_dependencies.md` | External dependencies, middleware, third-party integrations | Tables + architecture diagram |
+### 基本 REST API 场景
 
-## Mermaid Usage Examples
+```plantuml
+@startuml
+!theme plain
 
-```markdown
-<!-- Sequence Diagram -->
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Controller
-    participant Service
-    Client->>Controller: Request
-    Controller->>Service: Process
-    Service-->>Controller: Result
-    Controller-->>Client: Response
+actor 用户 as User
+participant "Controller" as Ctrl
+participant "Service" as Svc
+participant "Repository" as Repo
+database "Database" as DB
+
+User -> Ctrl: GET /api/users/{id}
+activate Ctrl
+
+Ctrl -> Svc: GetUserAsync(id)
+activate Svc
+
+Svc -> Repo: FindByIdAsync(id)
+activate Repo
+
+Repo -> DB: SELECT * FROM Users WHERE Id = @id
+activate DB
+DB --> Repo: User 实体
+deactivate DB
+
+Repo --> Svc: User?
+deactivate Repo
+
+alt 用户存在
+    Svc --> Ctrl: 200 OK + User
+else 用户不存在
+    Svc --> Ctrl: 404 Not Found
+end
+
+Ctrl --> User: JSON 响应
+deactivate Ctrl
+@enduml
 ```
 
-<!-- Class Diagram -->
+### 含中间件管道
+
+```plantuml
+@startuml
+!theme plain
+
+actor 客户端 as Client
+participant "Middleware A\\n(认证)" as Auth
+participant "Middleware B\\n(日志)" as Log
+participant "Controller" as Ctrl
+participant "Service" as Svc
+collections "DbContext" as Db
+
+Client -> Auth: HTTP 请求
+activate Auth
+
+Auth -> Auth: 验证 JWT Token
+alt 令牌无效
+    Auth --> Client: 401 Unauthorized
+    deactivate Auth
+    note right: 管道短路，不继续传递
+else 令牌有效
+    Auth -> Log: 转发请求
+    deactivate Auth
+    activate Log
+
+    Log -> Log: 记录请求日志
+    Log -> Ctrl: 调用 Action
+    activate Ctrl
+
+    Ctrl -> Svc: 执行业务逻辑
+    activate Svc
+    Svc -> Db: 查询/写入
+    activate Db
+    Db --> Svc: 结果
+    deactivate Db
+    Svc --> Ctrl: 业务结果
+    deactivate Svc
+
+    Ctrl --> Log: ActionResult
+    deactivate Ctrl
+    Log --> Client: HTTP 响应
+    deactivate Log
+end
+@enduml
+```
+
+### 异步/事件驱动场景
+
+```plantuml
+@startuml
+!theme plain
+
+actor 用户 as User
+participant "API" as Api
+queue "消息队列" as MQ
+participant "事件处理器" as Handler
+participant "Service" as Svc
+database "Database" as DB
+
+User -> Api: POST /api/orders
+activate Api
+Api -> DB: 保存订单
+activate DB
+DB --> Api: order_id
+deactivate DB
+Api -> MQ: 发布 OrderCreated 事件
+Api --> User: 202 Accepted + order_id
+deactivate Api
+
+== 异步处理 ==
+MQ -> Handler: 消费 OrderCreated
+activate Handler
+Handler -> Svc: ProcessPayment(order_id)
+activate Svc
+Svc -> DB: 更新支付状态
+activate DB
+DB --> Svc: 完成
+deactivate DB
+Svc --> Handler: 支付结果
+deactivate Svc
+Handler --> MQ: ACK
+deactivate Handler
+@enduml
+```
+
+### PlantUML 语法验证清单
+
+- [ ] `@startuml` / `@enduml` 成对出现
+- [ ] 所有参与者（`actor` / `participant` / `database` / `queue` / `collections`）在使用前声明
+- [ ] `activate` / `deactivate` 成对匹配，无遗漏
+- [ ] `alt` / `else` / `end` 块结构正确
+- [ ] `note right` / `note left` 有明确作用域
+- [ ] `== 分隔标题 ==` 用于阶段分隔
+
+## 类图（Mermaid）
+
 ```mermaid
 classDiagram
-    class IService {
+    class IUserService {
         <<interface>>
-        +Process(data)
+        +GetUserAsync(int id) Task~User?~
+        +CreateUserAsync(User user) Task~User~
     }
-    class ServiceImpl {
-        -_repository
-        +Process(data)
+    class UserService {
+        -IUserRepository _repo
+        -ILogger _logger
+        +GetUserAsync(int id) Task~User?~
+        +CreateUserAsync(User user) Task~User~
     }
-    IService <|-- ServiceImpl
+    class UserController {
+        +GetUser(int id) IActionResult
+        +CreateUser(CreateUserRequest req) IActionResult
+    }
+    IUserService <|.. UserService
+    UserController --> IUserService
 ```
 
-<!-- Flowchart -->
+> 来源: `src/MyApp.Web/Services/UserService.cs` 第 15-45 行
+
+## 流程图（Mermaid）
+
 ```mermaid
 flowchart TD
-    A[Start] --> B{Condition?}
-    B -->|Yes| C[Process]
-    B -->|No| D[Fallback]
-    C --> E[End]
-    D --> E
+    A[收到 HTTP 请求] --> B{认证通过？}
+    B -->|否| C[返回 401]
+    B -->|是| D[执行中间件管道]
+    D --> E{路由匹配？}
+    E -->|否| F[返回 404]
+    E -->|是| G[调用 Controller]
+    G --> H[执行 Action]
+    H --> I[序列化 JSON]
+    I --> J[返回响应]
 ```
-```
 
-## Diagram Validation Checklist
+## 输出位置
 
-> **Mandatory.** Every diagram written in analysis deliverables MUST pass the following checks before the document is committed. Invalid diagrams silently fail to render, degrading documentation quality.
+`content/{lang}/{Project}/architecture/`
 
-### Mermaid Validation
-
-- [ ] **Direction/type** matches content — `flowchart` for processes, `sequenceDiagram` for interactions, `classDiagram` for types
-- [ ] **Arrow operators** are valid — `->>` for async call, `-->>` for async return, `-x` for lost message, `--) ` for done
-- [ ] **All participants declared** in sequence diagrams before being referenced in arrows
-- [ ] **Brackets balanced** — `{}` `[]` `()` are properly paired, no unclosed nesting
-- [ ] **Keywords lowercase** — `participant`, `loop`, `alt`, `opt`, `rect`, `activate`, `deactivate`
-- [ ] **Indentation consistent** — `loop`/`alt`/`opt` blocks are indented uniformly to show scope
-- [ ] **Labels escaped** — `"` `(` `)` inside node text use consistent wrapping (e.g., `B{Condition?}` or `B["Condition?"]`)
-- [ ] **No dangling edges** — every arrow has both a source and a target node that exist
-
-### PlantUML Validation
-
-- [ ] **`@startuml` / `@enduml`** present and balanced — one opening, one closing
-- [ ] **Participants declared** — `actor`, `participant`, `boundary`, `control`, `entity` defined before use
-- [ ] **Arrow direction explicit** — `->` `-->` `-down->` `-right->` `-left->` where direction matters
-- [ ] **Brackets balanced** — `{}` `[]` `()` properly paired
-- [ ] **Skinparam syntax** — `skinparam` lines use correct parameter names (e.g. `skinparam backgroundColor`)
-
-### Pre-Commit Verification
-
-Before finalizing, the agent MUST:
-
-1. **Mentally trace** each diagram's logic — walk through every arrow and verify connectivity
-2. **Re-read** the raw code block as if parsing it — catch missing brackets, misspelled keywords, unclosed blocks
-3. **Verify against the rendering target** — ensure the diagram type is supported by AvalonMarkdown v4.0 (Mermaid 11 + PlantUML encoder)
 
