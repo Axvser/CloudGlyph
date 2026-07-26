@@ -30,27 +30,47 @@ def run_git(cmd: list[str], cwd: Path | None = None, check: bool = True) -> subp
     except FileNotFoundError:
         log("ERROR: 'git' command not found. Please install Git.")
         sys.exit(1)
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.strip() if exc.stderr else "(no stderr)"
+        log(f"ERROR: git {' '.join(cmd)} failed (exit {exc.returncode}):")
+        for line in stderr.splitlines():
+            log(f"  git: {line}")
+        sys.exit(1)
 
 
 def check_sync(repo_root: Path) -> bool:
-    """Return True if local master matches remote origin/master."""
-    # Ensure remote info is fresh
-    log("Fetching remote origin...")
-    run_git(["fetch", "origin"], cwd=repo_root)
+    """Return True if local checkout matches the template remote HEAD.
 
+    Uses ``git ls-remote`` to check the template repository directly,
+    so it works for both the original template repo and downstream projects.
+    """
     # Get local HEAD commit
-    local = run_git(["rev-parse", BRANCH], cwd=repo_root).stdout.strip()
-    remote = run_git(["rev-parse", f"origin/{BRANCH}"], cwd=repo_root).stdout.strip()
-
-    if not local or not remote:
-        log("ERROR: Could not resolve branches.")
+    local = run_git(["rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
+    if not local:
+        log("ERROR: Could not resolve local HEAD.")
         sys.exit(1)
 
-    synced = local == remote
+    # Query the template remote for the latest commit on the target branch
+    log(f"Checking remote template ({BRANCH} branch)...")
+    result = run_git(
+        ["ls-remote", REPO_URL, f"refs/heads/{BRANCH}"],
+        cwd=repo_root,
+        check=False,
+    )
+    remote_sha = result.stdout.strip().split(maxsplit=1)[0] if result.stdout.strip() else ""
+
+    if result.returncode != 0 or not remote_sha:
+        stderr = result.stderr.strip() if result.stderr else "(no stderr)"
+        log(f"ERROR: Could not contact template remote at {REPO_URL} (exit {result.returncode}):")
+        for line in stderr.splitlines():
+            log(f"  git: {line}")
+        sys.exit(1)
+
+    synced = local == remote_sha
     if synced:
-        log(f"Local {BRANCH} is up-to-date with origin/{BRANCH}.")
+        log(f"Local HEAD ({local[:8]}) matches template {BRANCH} ({remote_sha[:8]}).")
     else:
-        log(f"Local {BRANCH} ({local[:8]}) differs from origin/{BRANCH} ({remote[:8]}).")
+        log(f"Local HEAD ({local[:8]}) differs from template {BRANCH} ({remote_sha[:8]}).")
     return synced
 
 
