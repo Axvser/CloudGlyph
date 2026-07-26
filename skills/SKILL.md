@@ -50,38 +50,93 @@ The Wiki uses a "directory-as-page" organization. The Agent **must not** decide 
 - Categories sit **directly under `content/{lang}/`** — no `{ProductName}/` or `{SolutionName}/` wrapper directory
 - Categories are based on **functional areas** discovered in Module Discovery, not on individual project names
 - Create 2-8 category directories based on the module discovery results
-- Each category has a `0_quickstart/`, `1_api/`, `2_architecture/` sub-structure as needed
-- **Important:** Do NOT create a `{Project}/` or `{Product}/` wrapper directory. Example: `content/zh/1_Core/0_quickstart/` is correct; `content/zh/VeloxDev/1_Core/0_quickstart/` is wrong.
+- Each category uses an **outer-inner** structure:
+  - **Outer layer**: `0_quickstart/`, `1_api/`, `2_architecture/`
+  - **Inner layer**: per-feature sub-pages under each outer directory (e.g. `0_Workflow/`, `1_MVVM/`, `2_Transitions/`)
+  - Each inner sub-page directory contains `index.md`
+  - Architecture analysis inner layer follows SE Analysis spec: `0_file_structure/`, `1_feature_map/`, `2_design_patterns/{Feature}/`, `3_data_flow/{Feature}/`, `4_complexity/{Feature}/`
+- **Important:** Do NOT create a `{Project}/` or `{Product}/` wrapper directory. Example: `content/zh/1_Core/0_quickstart/0_Workflow/` is correct; `content/zh/VeloxDev/1_Core/0_quickstart/` is wrong.
 
 ```
 # Example: Category organization (framework / library / product)
+# Outer: quickstart / api / architecture
+# Inner: per-feature sub-pages
 content/en/
 ├── 0_Welcome/
 │   └── index.md
 ├── 1_Core/
-│   ├── 0_quickstart/
-│   │   └── index.md
-│   ├── 1_api/
-│   │   └── index.md
-│   └── 2_architecture/
-│       └── index.md
+│   ├── 0_quickstart/           ← Outer: quickstart
+│   │   ├── index.md            ← Overview
+│   │   ├── 0_Workflow/         ← Inner: per-feature sub-page
+│   │   │   └── index.md
+│   │   ├── 1_MVVM/
+│   │   │   └── index.md
+│   │   └── 2_Transitions/
+│   │       └── index.md
+│   ├── 1_api/                  ← Outer: API reference
+│   │   ├── index.md
+│   │   ├── 0_Workflow/
+│   │   │   └── index.md
+│   │   ├── 1_MVVM/
+│   │   │   └── index.md
+│   │   └── 2_Transitions/
+│   │       └── index.md
+│   └── 2_architecture/         ← Outer: architecture analysis
+│       ├── index.md
+│       ├── 0_file_structure/   ← Per SE Analysis spec grouping
+│       │   └── index.md
+│       ├── 1_feature_map/
+│       │   └── index.md
+│       ├── 2_design_patterns/
+│       │   ├── index.md
+│       │   ├── 0_Workflow/
+│       │   │   └── index.md
+│       │   └── 1_MVVM/
+│       │       └── index.md
+│       ├── 3_data_flow/
+│       │   ├── index.md
+│       │   ├── 0_Workflow/
+│       │   │   └── index.md
+│       │   └── 1_MVVM/
+│       │       └── index.md
+│       └── 4_complexity/
+│           ├── index.md
+│           ├── 0_Workflow/
+│           │   └── index.md
+│           └── 1_MVVM/
+│               └── index.md
 ├── 2_Adapters/
 │   ├── 0_quickstart/
-│   │   └── index.md
-│   └── 1_api/
-│       └── index.md
+│   │   ├── index.md
+│   │   ├── 0_WPF/
+│   │   │   └── index.md
+│   │   ├── 1_Avalonia/
+│   │   │   └── index.md
+│   │   └── ...
+│   ├── 1_api/
+│   │   ├── index.md
+│   │   ├── 0_WPF/
+│   │   │   └── index.md
+│   │   └── ...
+│   └── 2_architecture/
+│       ├── index.md
+│       ├── 0_file_structure/
+│       │   └── index.md
+│       └── ...
 ├── 3_Generator/
 │   ├── 0_quickstart/
-│   │   └── index.md
-│   └── 1_api/
-│       └── index.md
-├── 4_Templates/
-│   └── 0_quickstart/
-│       └── index.md
-├── 5_Examples/
-│   └── 0_quickstart/
-│       └── index.md
-└── 6_copyright/
+│   │   ├── index.md
+│   │   ├── 0_MVVMGenerator/
+│   │   │   └── index.md
+│   │   └── 1_WorkflowGenerator/
+│   │       └── index.md
+│   ├── 1_api/
+│   │   ├── index.md
+│   │   └── ...
+│   └── 2_architecture/
+│       ├── index.md
+│       └── ...
+└── 4_copyright/
 	└── index.md
 ```
 
@@ -139,7 +194,9 @@ Every code snippet in Wiki documentation **must** come from a real source. The A
 > **Priority 3 (Fallback) — Source code self-discovery**
 > Only when no Demo or Test exists for a module: read the source code interfaces, extract method signatures, and construct minimal usage examples. These must be explicitly marked as *inferred* if not verified against an actual call site.
 >
-> **Rule:** If a code block contains a class name, method name, or API call that does not exist in the codebase, it is a **fabrication** and must be fixed before the Review step. The Agent must verify every referenced symbol by searching the actual source files.
+> **Rule 1 (Mandatory full read):** If a module has Demo code (Priority 1), the Agent **must read ALL source files** under that module's Demo directory in full. Do not skim just a few lines. The documentation must reflect every usage pattern shown in the Demo — initialization, configuration, core API call chains, error handling, and edge cases. Likewise, if no Demo exists but tests exist, the Agent must read all test files in full.
+>
+> **Rule 2 (No fabrication):** If a code block contains a class name, method name, or API call that does not exist in the codebase, it is a **fabrication** and must be fixed before the Review step. The Agent must verify every referenced symbol by searching the actual source files.
 
 ## Code Styling
 
@@ -165,13 +222,17 @@ Pages are written in **reader consumption order**: Quick Start → APIs → Arch
 
 When `Project_List` contains **multiple modules**, Steps 5→6→7 execute as a **micro-loop per module**, not as three batch passes across all modules. This prevents context overload and ensures each module's API and analysis chapters benefit from the module-specific Quick Start written just before them.
 
+**Pre-step (mandatory per module):** Before entering the micro-loop, the Agent **must read all** Demo/Test source files for that module in full to form a complete understanding of its API surface. Do not begin writing after reading only a subset of files.
+
 **Correct pattern — per-module micro-loop:**
 ```
 For Module A:
+  Pre-step: Read all Demo/Test source files for Module A in full
   5.Write【Quick Start for Module A】
   6.Write【APIs for Module A】
   7.Write【SE Analysis for Module A】
 For Module B:
+  Pre-step: Read all Demo/Test source files for Module B in full
   5.Write【Quick Start for Module B】
   6.Write【APIs for Module B】
   7.Write【SE Analysis for Module B】
@@ -194,13 +255,19 @@ For **single-project** tier (only 1 module), the micro-loop collapses naturally 
 
 > 7.Write【Software Engineering Analysis】— `{category}/2_architecture/` (architecture, class diagrams, sequences)
 
-> 8.Write【Copyright】— `{category}/3_copyright/` (license and attribution)
+> 8.Write【Copyright】— `{category}/{N}_copyright/` (license and attribution), where `N` is the last category number for that language
 
 ### Polish & Publish (Steps 9-11)
 
-> 9.Write【Welcome】— `0_Welcome/` (or `0_欢迎/` for zh). Execute after all content pages exist but before Review. Welcome is the first navigation entry but the **last page written** because it summarizes all other pages.
+> 9.Write【Welcome】— `0_Welcome/` (or `0_欢迎/` for zh). Execute after all content pages exist but before Review. Welcome summarizes all other pages.
 
-> 10.Review — Full per-page audit including: code authenticity verification, diagram syntax check, navigation index regeneration (`python gen_tree.py`), and project build (`dotnet build`)
+> 10.【Review — Quality Gate 🔴 REQUIRED】— Load `skills/en/review/SKILL.md` and execute each check item, covering at minimum:
+>     - Module coverage: Verify every module in the module list is documented
+>     - Code authenticity: For every code block on every page, verify class names / method names / parameters / namespaces match source code
+>     - Diagram syntax: Mermaid / PlantUML / KaTeX syntax validation
+>     - Structural consistency: numeric prefixes, index.md presence, no local Markdown links
+>     - Navigation index: Run `python gen_tree.py` to rebuild tree.json
+>     - Project build: Run `dotnet build` to verify compilation
 
 > 11.End
 

@@ -11,10 +11,10 @@ Write complete API reference documentation for each functional module. More in-d
 When extracting API documentation, follow this strict priority hierarchy:
 
 > **Priority 1 — Demo/Example projects**
-> Scan `Examples/` directories for real-world usage of the API. Demo projects reveal the intended public API surface and the most idiomatic invocation patterns.
+> Scan `Examples/` directories for real-world usage of the API, **read all source files in full**. Demo projects reveal the intended public API surface and the most idiomatic invocation patterns.
 >
 > **Priority 2 — Unit Tests**
-> Extract API signatures, typical input/output, and edge cases from test files. Tests provide real parameter values, assertion expectations, and exception paths.
+> **Read all test files in full**, extracting API signatures, typical input/output, and edge cases. Tests provide real parameter values, assertion expectations, and exception paths.
 >
 > **Priority 3 (Fallback) — Source code interfaces**
 > Only when no Demo or Test exists: read the public API signatures directly from source files. These must be explicitly marked as *inferred*.
@@ -73,7 +73,22 @@ endpoint.WithOpenApi();
 
 ## Output Location
 
-`content/{lang}/{Project}/api/{Module}/index.md`
+`content/{lang}/{category}/1_api/{Feature}/index.md`
+
+Each feature module gets its own sub-directory:
+
+```
+# Example: 1_Core API reference
+content/en/1_Core/1_api/
+├── index.md                    ← Overview
+├── 0_Workflow/                 ← Workflow API
+│   └── index.md
+├── 1_MVVM/                     ← MVVM API
+│   └── index.md
+├── 2_Transitions/              ← Transitions API
+│   └── index.md
+└── ...
+```
 
 3. **Extract API signatures** — Method name, parameter types, return type, exception declarations
 4. **Record typical input/output** — Extract real invocation examples from test cases

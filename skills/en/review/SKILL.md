@@ -8,8 +8,26 @@ Systematically review **all** generated Wiki content to ensure quality, accuracy
 
 ### Module Coverage Audit
 
-- [ ] Cross-reference **every entry** in the module list from Phase 3; verify every module has been documented
+- [ ] Cross-reference the module list produced by Phase 3, verifying each source module along the priority chain **Demo → Tests → Self-discovered** has been documented
 - [ ] Immediately fill any missing modules
+
+---
+
+### Usage Completeness Audit
+
+- [ ] Each feature module's Quick Start covers its top-level API (attributes/fluent/extension methods)
+- [ ] API reference covers all public types and members found during discovery
+- [ ] Code examples demonstrate both **declarative** and **imperative** usage styles
+
+---
+
+### Demo Read Verification (Pre-check)
+
+Before starting the per-page audit, verify whether the writing phase fulfilled the mandatory full-read obligation:
+
+- [ ] For every module with Demo code, confirm the documentation covers usage patterns from **all source files** in that module's Demo directory, not just a few snippets
+- [ ] For every module with only tests, confirm the documentation covers key usages and edge cases from the test files
+- [ ] If a Demo exists but the documentation clearly misses patterns → **mark as FAIL**, require the Agent to re-read the full Demo and rewrite
 
 ---
 
@@ -41,7 +59,6 @@ For **every page** in the Wiki, extract all code blocks containing API reference
 - [ ] Numeric prefixes follow conventions (e.g. `01_`, `02_`)
 - [ ] `index.md` exists in **every** page directory (root and sub-pages)
 - [ ] No local Markdown links (`[text](local/path/)`) — use relative navigation via the tree instead
-- [ ] Page titles and hierarchy are clear and navigable
 
 ---
 
@@ -54,18 +71,17 @@ For **every page** in the Wiki, extract all code blocks containing API reference
 
 ### Navigation Index Verification
 
-- [ ] **Regenerate tree.json** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild the navigation index from the current directory structure
-- [ ] **Verify tree output** — Confirm the regenerated tree.json includes **all** new pages with correct nesting
-- [ ] **Build the project** — Run `dotnet build` to verify the application compiles and all assets (including new content) are embedded as AvaloniaResource
+- [ ] **Run navigation script** — Execute `python gen_tree.py` (or the actual script for the project) to rebuild `tree.json`
+- [ ] **Verify script output** — Confirm the generated `tree.json` includes **all** new pages with correct nesting
+- [ ] **Build the project** — Run `dotnet build` to verify compilation
 
 ---
 
 ## Pre-Commit Verification Flow
 
-1. For **every page** in the Wiki, extract all code blocks containing API references
-2. For each reference, use the repo-reading notes from Phase 1 or perform **targeted symbol searches** to confirm existence
-3. If an API reference cannot be verified, **fix the doc to match reality** or remove the reference
-4. Re-check diagram syntax (Mermaid/PlantUML) after any content corrections
-5. Regenerate navigation index (`gen_tree.py`)
-6. Build the project (`dotnet build`)
-7. Only after all items are ✅, mark the quality gate as passed
+1. Walk through the checklist item by item; **fix issues immediately** before moving to the next item
+2. Code authenticity issues → search source to confirm signatures, then fix docs
+3. Diagram syntax issues → fix and re-validate
+4. Run `python gen_tree.py`, confirm no pages are missing
+5. Run `dotnet build`, confirm compilation succeeds
+6. Only after all items are ✅, mark the quality gate as passed

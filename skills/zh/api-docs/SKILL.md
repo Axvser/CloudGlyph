@@ -11,10 +11,10 @@
 提取 API 文档时，遵循以下严格优先层级：
 
 > **优先级 1 — Demo/示例项目**
-> 扫描 `Examples/` 目录中该 API 的真实使用代码。Demo 项目揭示了预期的公共 API 表面和最惯用的调用模式。
+> 扫描 `Examples/` 目录中该 API 的真实使用代码，**完整读取所有源文件**。Demo 项目揭示了预期的公共 API 表面和最惯用的调用模式。
 >
 > **优先级 2 — 单元测试**
-> 从测试文件中提取 API 签名、典型输入/输出和边界情况。测试提供了真实的参数值、断言期望和异常路径。
+> **完整读取所有测试文件**，提取 API 签名、典型输入/输出和边界情况。测试提供了真实的参数值、断言期望和异常路径。
 >
 > **优先级 3（兜底）— 源码接口自行发现**
 > 仅在 Demo 和测试都不存在时：直接从源文件中读取公共 API 签名。这些必须明确标注为*推断所得*。
@@ -73,7 +73,22 @@ endpoint.WithOpenApi();
 
 ## 输出位置
 
-`content/{lang}/{Project}/api/{Module}/index.md`
+`content/{lang}/{category}/1_API参考/{Feature}/index.md`
+
+每个功能模块对应一个子目录：
+
+```
+# 示例：1_核心 的 API 参考
+content/zh/1_核心/1_API参考/
+├── index.md                    ← 概览
+├── 0_工作流/                   ← 工作流系统 API
+│   └── index.md
+├── 1_MVVM/                     ← MVVM API
+│   └── index.md
+├── 2_过渡动画/                  ← 过渡动画 API
+│   └── index.md
+└── ...
+```
 3. **Extract API signatures** — Method name, parameter types, return type, exception declarations
 4. **Record typical input/output** — Extract real invocation examples from test cases
 5. **Capture edge cases** — `null`, empty collections, boundary values, error paths
