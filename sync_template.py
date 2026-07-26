@@ -6,7 +6,6 @@ Syncs the local repository with the latest remote template, preserving user docu
 
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 import sys
@@ -68,7 +67,6 @@ def sync_files(source: Path, target: Path) -> None:
 
     preserve_path = (source / PRESERVE_RELATIVE).resolve()
     target_preserve_path = (target / PRESERVE_RELATIVE).resolve()
-    script_name = Path(__file__).resolve().name
 
     log(f"Preserving directory: {PRESERVE_RELATIVE}")
 
