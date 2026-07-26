@@ -30,7 +30,7 @@ The Wiki uses a "directory-as-page" organization. The Agent must follow two core
 
 > **Rule 3: Directory name must match the target language** — Directory names must be in the language of the content, not in English. For example, if `Language_List = ["zh"]`, use `0_欢迎` instead of `0_Welcome`, `1_快速入门` instead of `1_quickstart`, `2_API参考` instead of `2_api`, `3_架构分析` instead of `3_architecture`. Exception: Proper nouns and brand names (e.g. "VeloxDev", "MVVM", "AOP") that are universally recognized in their original form.
 
-### Content Organization (Type-Based Decision)
+### Content Organization (Dimension-Based Decision)
 
 The Wiki uses a "directory-as-page" organization. The Agent **must not** decide the structure based on project count alone. Instead, determine the **nature of the target** being documented:
 
@@ -40,144 +40,132 @@ The Wiki uses a "directory-as-page" organization. The Agent **must not** decide 
 
 | If... | Then... |
 |---|---|
-| **Yes** — it is a cohesive product/framework/library | Always use **Category** organization: `content/{lang}/{category}/` — group by **functional area** (Core, Adapters, Tools, etc.), never by individual `.csproj`. Ignore how many sub-projects it has. |
+| **Yes** — it is a cohesive product/framework/library | Always use **Dimension** organization — the outermost structure is **fixed** (see below). Features discovered via Module Discovery are placed as sub-pages under each dimension. |
 | **No** — the solution is a collection of independent apps/tools/services | **Ask the user** how to organize. Present the available options and let them decide. Do not guess. |
 
 > **Rationale:** A framework with 40+ sub-projects is still one thing (the framework). A solution with 2 completely independent web apps is two separate things. Count alone cannot distinguish these cases.
 
-#### Category Organization (for frameworks, libraries, products)
+#### Dimension Organization (for frameworks, libraries, products)
 
-- Categories sit **directly under `content/{lang}/`** — no `{ProductName}/` or `{SolutionName}/` wrapper directory
-- Categories are based on **functional areas** discovered in Module Discovery, not on individual project names
-- Create 2-8 category directories based on the module discovery results
-- Each category uses an **outer-inner** structure:
-  - **Outer layer**: `0_quickstart/`, `1_api/`, `2_architecture/`
-  - **Inner layer**: per-feature sub-pages under each outer directory (e.g. `0_Workflow/`, `1_MVVM/`, `2_Transitions/`)
-  - Each inner sub-page directory contains `index.md`
-  - Architecture analysis inner layer follows SE Analysis spec: `0_file_structure/`, `1_feature_map/`, `2_design_patterns/{Feature}/`, `3_data_flow/{Feature}/`, `4_complexity/{Feature}/`
-- **Important:** Do NOT create a `{Project}/` or `{Product}/` wrapper directory. Example: `content/zh/1_Core/0_quickstart/0_Workflow/` is correct; `content/zh/VeloxDev/1_Core/0_quickstart/` is wrong.
+The outermost directory structure is **strictly fixed** — not determined by discovered categories. It always contains exactly these four dimensions:
+
+| # | Directory | Purpose |
+|---|---|---|
+| 0 | `0_Welcome/` | Welcome page — project overview summary |
+| 1 | `1_QuickStart/` | Quick Start — getting-started code samples for each feature |
+| 2 | `2_API/` | API Reference — full API reference for each feature |
+| 3 | `3_SE_Analysis/` | SE Analysis — software engineering analysis (file structure, design patterns, data flow, complexity) |
+
+Then `{last_number}_Copyright/` (e.g. `4_Copyright/`) as the final page.
+
+**Rules:**
+
+- Each dimension directory is directly under `content/{lang}/` — no `{ProductName}/` or `{SolutionName}/` or `{Category}/` wrapper
+each **feature** (discovered via Demo→Test→Source) gets its own sub-directory (e.g. `0_FeatureA/`, `1_FeatureB/`, `2_FeatureC/`), each containing `index.md`
+- Under `3_SE_Analysis/`: the inner structure follows the SE Analysis spec — `0_file_structure/`, `1_feature_map/`, `2_design_patterns/{Feature}/`, `3_data_flow/{Feature}/`, `4_complexity/{Feature}/`
+- Copyright is always the last number in the language's content tree
 
 ```
-# Example: Category organization (framework / library / product)
-# Outer: quickstart / api / architecture
-# Inner: per-feature sub-pages
+# Example: Dimension organization (framework / library / product)
+# Outer: fixed dimensions — Welcome / QuickStart / API / SE_Analysis / Copyright
+# Inner: per-feature sub-pages under each dimension
 content/en/
-├── 0_Welcome/
+├── 0_Welcome/                         ← Fixed dimension: Welcome
 │   └── index.md
-├── 1_Core/
-│   ├── 0_quickstart/           ← Outer: quickstart
-│   │   ├── index.md            ← Overview
-│   │   ├── 0_Workflow/         ← Inner: per-feature sub-page
+├── 1_QuickStart/                      ← Fixed dimension: Quick Start
+│   ├── index.md                       ← Overview (optional)
+├── 0_FeatureA/              ← Feature A
+│   │   └── index.md
+│   ├── 1_FeatureB/             ← Feature B
+│   │   └── index.md
+│   ├── 2_FeatureC/             ← Feature C
+│   │   └── index.md
+│   └── ...                     ← More features...
+├── 2_API/                       ← Fixed dimension: API Reference
+│   ├── index.md                 ← Overview (optional)
+│   ├── 0_FeatureA/              ← Feature A
+│   │   └── index.md
+│   ├── 1_FeatureB/              ← Feature B
+│   │   └── index.md
+│   └── ...                      ← More features...
+├── 3_SE_Analysis/               ← Fixed dimension: SE Analysis
+│   ├── index.md                 ← Overview
+│   ├── 0_file_structure/        ← Repository layout
+│   │   └── index.md
+│   ├── 1_feature_map/           ← Feature responsibility map
+│   │   └── index.md
+│   ├── 2_design_patterns/       ← Design patterns
+│   │   ├── index.md
+│   │   ├── 0_FeatureA/          ← Feature A
 │   │   │   └── index.md
-│   │   ├── 1_MVVM/
-│   │   │   └── index.md
-│   │   └── 2_Transitions/
+│   │   └── 1_FeatureB/          ← Feature B
 │   │       └── index.md
-│   ├── 1_api/                  ← Outer: API reference
+│   ├── 3_data_flow/             ← Data flow / sequence diagrams
 │   │   ├── index.md
-│   │   ├── 0_Workflow/
+│   │   ├── 0_FeatureA/
 │   │   │   └── index.md
-│   │   ├── 1_MVVM/
-│   │   │   └── index.md
-│   │   └── 2_Transitions/
+│   │   └── 1_FeatureB/
 │   │       └── index.md
-│   └── 2_architecture/         ← Outer: architecture analysis
+│   └── 4_complexity/            ← Complexity analysis
 │       ├── index.md
-│       ├── 0_file_structure/   ← Per SE Analysis spec grouping
+│       ├── 0_FeatureA/
 │       │   └── index.md
-│       ├── 1_feature_map/
-│       │   └── index.md
-│       ├── 2_design_patterns/
-│       │   ├── index.md
-│       │   ├── 0_Workflow/
-│       │   │   └── index.md
-│       │   └── 1_MVVM/
-│       │       └── index.md
-│       ├── 3_data_flow/
-│       │   ├── index.md
-│       │   ├── 0_Workflow/
-│       │   │   └── index.md
-│       │   └── 1_MVVM/
-│       │       └── index.md
-│       └── 4_complexity/
-│           ├── index.md
-│           ├── 0_Workflow/
-│           │   └── index.md
-│           └── 1_MVVM/
-│               └── index.md
-├── 2_Adapters/
-│   ├── 0_quickstart/
-│   │   ├── index.md
-│   │   ├── 0_WPF/
-│   │   │   └── index.md
-│   │   ├── 1_Avalonia/
-│   │   │   └── index.md
-│   │   └── ...
-│   ├── 1_api/
-│   │   ├── index.md
-│   │   ├── 0_WPF/
-│   │   │   └── index.md
-│   │   └── ...
-│   └── 2_architecture/
-│       ├── index.md
-│       ├── 0_file_structure/
-│       │   └── index.md
-│       └── ...
-├── 3_Generator/
-│   ├── 0_quickstart/
-│   │   ├── index.md
-│   │   ├── 0_MVVMGenerator/
-│   │   │   └── index.md
-│   │   └── 1_WorkflowGenerator/
-│   │       └── index.md
-│   ├── 1_api/
-│   │   ├── index.md
-│   │   └── ...
-│   └── 2_architecture/
-│       ├── index.md
-│       └── ...
-└── 4_copyright/
+│       └── 1_FeatureB/
+│           └── index.md
+└── 4_Copyright/                       ← Copyright (last number)
 	└── index.md
 ```
 
 #### Per-Project Organization (only when user explicitly chooses this)
 
-If the user opts for per-project structure (e.g. a solution containing multiple independent apps):
+If the user opts for per-project structure (e.g. a solution containing multiple independent apps), it is the **same dimension organization** but wrapped in a `{Project}/` directory. Each project gets its own copy of the four fixed dimensions:
 
 ```
 content/en/
-├── 0_Welcome/
+├── 0_Welcome/                         ← Global Welcome (project overview)
 │   └── index.md
-├── 1_MyApp/
-│   ├── 0_quickstart/
+├── 1_MyApp/                           ← Project wrapper
+│   ├── index.md                       ← Project overview
+│   ├── 0_QuickStart/                  ← Fixed dimension: Quick Start
 │   │   ├── index.md
-│   │   ├── 01_getting-started/
+│   │   ├── 0_FeatureA/
 │   │   │   └── index.md
-│   │   └── 02_advanced-usage/
+│   │   └── 1_FeatureB/
 │   │       └── index.md
-│   ├── 1_api/
+│   ├── 1_API/                         ← Fixed dimension: API Reference
 │   │   ├── index.md
-│   │   ├── Controllers/
+│   │   ├── 0_FeatureA/
 │   │   │   └── index.md
-│   │   └── Services/
+│   │   └── 1_FeatureB/
 │   │       └── index.md
-│   └── 2_architecture/
-│       ├── index.md
-│       ├── 01_project_structure/
-│       │   └── index.md
-│       └── 02_class_hierarchy/
-│           └── index.md
-├── 2_MyLib/
-│   ├── 0_quickstart/
+│   ├── 2_SE_Analysis/                 ← Fixed dimension: SE Analysis
 │   │   ├── index.md
-│   │   └── 01_getting-started/
-│   │       └── index.md
-│   └── 1_api/
-│       ├── index.md
-│       └── Services/
-│           └── index.md
-└── 3_copyright/
-	└── index.md
+│   │   ├── 0_file_structure/
+│   │   │   └── index.md
+│   │   ├── 1_feature_map/
+│   │   │   └── index.md
+│   │   ├── 2_design_patterns/
+│   │   │   ├── 0_FeatureA/
+│   │   │   │   └── index.md
+│   │   │   └── 1_FeatureB/
+│   │   │       └── index.md
+│   │   ├── 3_data_flow/
+│   │   │   └── ...
+│   │   └── 4_complexity/
+│   │       └── ...
+│   └── 3_Copyright/                   ← Copyright (last number for this project)
+│       └── index.md
+├── 2_MyLib/                           ← Another project wrapper
+│   ├── index.md
+│   ├── 0_QuickStart/
+│   │   └── ...
+│   ├── 1_API/
+│   │   └── ...
+│   ├── 2_SE_Analysis/
+│   │   └── ...
+│   └── 3_Copyright/
+│       └── index.md
+└── ...
 ```
 ```
 
@@ -249,13 +237,13 @@ Then 8.Write【Copyright】 (global, one pass)
 
 For **single-project** tier (only 1 module), the micro-loop collapses naturally to one iteration; treat it the same way.
 
-> 5.Write【Quick Start】— `{category}/0_quickstart/` (index.md with getting-started code samples)
+> 5.Write【Quick Start】— `1_QuickStart/{Feature_N}/` (e.g. `1_QuickStart/0_FeatureA/index.md` with getting-started code samples)
 
-> 6.Write【APIs】— `{category}/1_api/` (full API reference documentation)
+> 6.Write【APIs】— `2_API/{Feature_N}/` (e.g. `2_API/0_FeatureA/index.md` with full API reference documentation)
 
-> 7.Write【Software Engineering Analysis】— `{category}/2_architecture/` (architecture, class diagrams, sequences)
+> 7.Write【Software Engineering Analysis】— `3_SE_Analysis/.../{Feature}/` (architecture, class diagrams, sequences). Under `3_SE_Analysis/`, each sub-group (`0_file_structure/`, `1_feature_map/`, `2_design_patterns/`, `3_data_flow/`, `4_complexity/`) contains per-feature sub-pages.
 
-> 8.Write【Copyright】— `{category}/{N}_copyright/` (license and attribution), where `N` is the last category number for that language
+> 8.Write【Copyright】— `{N}_Copyright/` (e.g. `4_Copyright/index.md`), where `N` is the last number in the language's content tree
 
 ### Polish & Publish (Steps 9-11)
 
