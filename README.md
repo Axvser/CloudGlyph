@@ -129,5 +129,12 @@ python sync_template.py
 
 The script will fetch the latest template from GitHub, synchronize all files (skills, configs, workflows), and preserve your existing content under `src/CloudGlyph/Assets/Docs/content/`.
 
-> **Note:** `sync_template.py` is a **user-facing** tool. It handles the full sync process — fetching upstream, merging changes, and regenerating the skill index. The Agent should **not** run this script. `gen_skill.py` is an internal development tool and does not need to be run manually.
+> **Note:** `sync_template.py` is a **user-facing** tool. After syncing, regenerate the skill index for each language:
+>
+> ```bash
+> python skills/gen_skill.py --lang en
+> python skills/gen_skill.py --lang zh
+> ```
+>
+> `gen_skill.py` is an internal development tool.
 </p>

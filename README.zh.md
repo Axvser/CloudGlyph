@@ -129,4 +129,11 @@ python sync_template.py
 
 该脚本会从 GitHub 拉取最新模板，同步所有文件（skills、配置、工作流等），并保留 `src/CloudGlyph/Assets/Docs/content/` 下你已有的内容。
 
-> **注意：** `sync_template.py` 是**面向用户**的工具。它处理完整的同步流程——拉取上游、合并变更、重新生成技能索引。**Agent 不应运行此脚本。**`gen_skill.py` 是内部开发工具，无需手动运行。
+> **注意：** `sync_template.py` 是**面向用户**的工具。同步后，为每种语言重新生成技能索引：
+>
+> ```bash
+> python skills/gen_skill.py --lang en
+> python skills/gen_skill.py --lang zh
+> ```
+>
+> `gen_skill.py` 是内部开发工具。

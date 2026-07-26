@@ -1,0 +1,95 @@
+# APIs
+
+## Responsibility
+
+Write complete API reference documentation for each functional module. More in-depth than Quick Start, showing all usage patterns (declarative + imperative), including security coverage.
+
+## Writing Requirements
+
+### Semantic Level
+
+- What problem does this API solve? (high-level intent, not just the method name)
+- When to use vs alternatives
+- Preconditions and postconditions
+
+### Full Code Level
+
+```csharp
+/// <summary>
+/// Asynchronously gets user information
+/// </summary>
+/// <param name="userId">User unique identifier</param>
+/// <param name="cancellationToken">Cancellation token</param>
+/// <returns>User object, or null if not found</returns>
+/// <exception cref="ArgumentException">Thrown when userId is invalid</exception>
+/// <exception cref="HttpRequestException">Thrown on network error</exception>
+public async Task<User?> GetUserAsync(
+	int userId,
+	CancellationToken cancellationToken = default)
+```
+
+### Exception Table
+
+| Exception | Condition |
+|---|---|
+| `ArgumentException` | `userId <= 0` |
+| `HttpRequestException` | Network request failed |
+| `TimeoutException` | No response within 30 seconds |
+
+### Multiple Usage Styles
+
+Show both declarative and imperative usage:
+
+```csharp
+// Declarative (Quick Start style)
+[HttpGet("users/{id}")]
+public async Task<IActionResult> GetUser(int id)
+
+// Imperative (full control)
+var endpoint = app.MapGet("/users/{id}", async (int id) => { ... });
+endpoint.WithName("GetUser");
+endpoint.WithOpenApi();
+```
+
+### Security Coverage
+
+- Authentication/authorization requirements
+- Input validation logic
+- Data sensitivity notes
+- Security defaults
+
+## Output Location
+
+`content/{lang}/{Project}/api/{Module}/index.md`
+
+3. **Extract API signatures** — Method name, parameter types, return type, exception declarations
+4. **Record typical input/output** — Extract real invocation examples from test cases
+5. **Capture edge cases** — `null`, empty collections, boundary values, error paths
+6. **Generate documentation** — API signature → parameter table → return value → example code → notes/caveats
+
+## Document Template
+
+```markdown
+## ClassName.MethodName
+
+**Signature:** `ReturnType MethodName(ParamType1 param1, ParamType2 param2)`
+
+| Parameter | Type | Description |
+|---|---|---|
+| `param1` | `ParamType1` | Description of param1 |
+| `param2` | `ParamType2` | Description of param2 |
+
+**Returns:** `ReturnType` — Description of return value
+
+**Example:**
+
+```csharp
+// From test: TestClass.Should_X_When_Y
+var result = instance.MethodName(value1, value2);
+Assert.Equal(expected, result);
+```
+
+**Notes:**
+- May throw YException when X occurs
+- Null values cause Z behavior
+```

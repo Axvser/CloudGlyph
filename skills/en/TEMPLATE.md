@@ -125,42 +125,4 @@ content/en/
 
 ## Skill Index
 
-子技能按场景组织到独立目录中。Agent 仅在用户请求匹配对应场景时加载子技能的 `SKILL.md`，切勿预加载。
-
-### 基础设置
-
-| 路径 | 场景 | 触发关键词 |
-|---|---|---|
-| `skills/en/context-setup/SKILL.md` | Variable confirmation — determine WIKI_ROOT, Solution_Root, Project_List, Language_List | Initialize workspace context, Determine Wiki root, Confirm solution and project list, Confirm language support scope |
-| `skills/en/tech-analysis/SKILL.md` | Tech stack analysis — identify project tech stack, entry points, and dependency chain | Analyze this repository, Understand project structure, Find entry points, Understand what this project does, How is this project organized |
-
-### 约束加载
-
-| 路径 | 场景 | 触发关键词 |
-|---|---|---|
-| `skills/en/lang-constraints/SKILL.md` | Load documentation conventions for the detected tech stack | Tech stack detected, need to load language conventions, Apply .NET documentation conventions, Apply Rust documentation conventions, Apply TypeScript documentation conventions, Apply Python documentation conventions, Apply Go documentation conventions, Apply C/C++ documentation conventions, Apply Java documentation conventions |
-| `  skills/en/lang-constraints/c-cpp/SKILL.md` | C / C++ documentation conventions |  |
-| `  skills/en/lang-constraints/dotnet/SKILL.md` | .NET documentation conventions (C# / VB / F#) |  |
-| `  skills/en/lang-constraints/go/SKILL.md` | Go documentation conventions |  |
-| `  skills/en/lang-constraints/java/SKILL.md` | Java documentation conventions |  |
-| `  skills/en/lang-constraints/python/SKILL.md` | Python documentation conventions |  |
-| `  skills/en/lang-constraints/rust/SKILL.md` | Rust documentation conventions |  |
-| `  skills/en/lang-constraints/typescript/SKILL.md` | TypeScript / JavaScript documentation conventions |  |
-
-### 内容编写
-
-| 路径 | 场景 | 触发关键词 |
-|---|---|---|
-| `skills/en/api-docs/SKILL.md` | API documentation — extracting API docs from code analysis | Extract API from test code, Generate API documentation, Create API reference from tests, Document public APIs |
-| `skills/en/copyright/SKILL.md` | Copyright — writing copyright notices and license information | Write copyright notice, Document license information, Add contributor credits, Generate attribution |
-| `skills/en/module-discovery/SKILL.md` | Module discovery — analyze solution structure, discover all functional modules | Discover modules in solution, Analyze project dependencies, Identify module responsibility boundaries, Map inter-module call relationships |
-| `skills/en/quickstart/SKILL.md` | Quick Start — module-level Quick Start documentation | Write quick start tutorial, Create getting started guide, Write walkthrough for beginners, Write complete example |
-| `skills/en/se-analysis/SKILL.md` | Software engineering analysis — architecture, class diagrams, sequences, API flow | Perform software engineering analysis, Draw architecture diagram, Analyze source code flow, Create class hierarchy document, Document request lifecycle |
-| `skills/en/welcome-page/SKILL.md` | Welcome page — beautiful HTML landing page | Beautify welcome page, Design landing page, Replace welcome page, Create Hero section for Wiki |
-
-### 质量保障
-
-| 路径 | 场景 | 触发关键词 |
-|---|---|---|
-| `skills/en/review/SKILL.md` | Review — Wiki content review and quality check | Review documentation quality, Check link validity, Audit Wiki content, Verify document structure, Ensure rendering compatibility |
-
+<!-- SKILL_INDEX -->

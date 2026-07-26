@@ -5,13 +5,18 @@ Collects Meta.md from each sub-skill directory, parses [#Tag] markers,
 groups skills by [#group], and injects the generated Sub-Skill Directory
 Index into Base.md to produce the final SKILL.md.
 
+Supports multiple languages via --lang parameter.
+
 Usage:
-    python skills/gen_skill.py
+    python skills/gen_skill.py                  # default: en
+    python skills/gen_skill.py --lang zh        # Chinese
+    python skills/gen_skill.py --lang en        # English
 
 Or from any working directory — the script auto-detects its location relative
 to the skills/ folder.
 """
 
+import argparse
 import os
 import re
 import sys
@@ -21,9 +26,16 @@ from typing import Optional
 
 # Script lives in skills/ — use that as the root
 SKILLS_ROOT = os.path.abspath(os.path.dirname(__file__))
-BASE_PATH = os.path.join(SKILLS_ROOT, "Base.md")
-SKILL_OUTPUT_PATH = os.path.join(SKILLS_ROOT, "SKILL.md")
-TABLE_OUTPUT_PATH = os.path.join(SKILLS_ROOT, "INDEX.md")
+
+def get_paths(lang: str) -> tuple[str, str]:
+    """Return (template_path, skill_output_path) for the given language.
+
+    Template is read from {lang}/TEMPLATE.md.
+    Output is written to skills/SKILL.md (the root entry point).
+    """
+    template_path = os.path.join(SKILLS_ROOT, lang, "TEMPLATE.md")
+    skill_output = os.path.join(SKILLS_ROOT, "SKILL.md")
+    return template_path, skill_output
 
 # Directories to skip when scanning for sub-skills
 _SKIP_DIRS = {"__pycache__", ".git", ".github"}
@@ -251,6 +263,8 @@ def _format_workflow(workflow_text: str) -> str:
 def _collect_skills_recursive(
     search_root: str,
     skills: list[dict],
+    lang: str,
+    lang_root: str,
     parent_meta: Optional[dict] = None,
     depth: int = 0,
 ) -> None:
@@ -258,6 +272,7 @@ def _collect_skills_recursive(
 
     *parent_meta* is the parsed Meta.md of the parent directory (used for
     group inheritance). *depth* tracks nesting level for indented display.
+    *lang* is the language code used to prefix routes (e.g. 'en', 'zh').
     """
     for entry in sorted(os.listdir(search_root)):
         sub_path = os.path.join(search_root, entry)
@@ -277,8 +292,8 @@ def _collect_skills_recursive(
             # Auto-generate route relative to SKILLS_ROOT if not explicitly set
             route = meta.get("route")
             if not route:
-                rel = os.path.relpath(sub_path, SKILLS_ROOT).replace("\\", "/")
-                route = f"skills/{rel}/SKILL.md"
+                rel = os.path.relpath(sub_path, lang_root).replace("\\", "/")
+                route = f"skills/{lang}/{rel}/SKILL.md"
                 meta["route"] = route
 
             skill = {
@@ -292,65 +307,73 @@ def _collect_skills_recursive(
             }
             skills.append(skill)
             print(
-                f"[gen_skill] Collected: {'  ' * depth}{os.path.relpath(sub_path, SKILLS_ROOT)}"
+                f"[gen_skill] Collected: {'  ' * depth}{os.path.relpath(sub_path, lang_root)}"
                 f" → group={group} (depth={depth})"
             )
 
         # Recurse into this subdirectory (pass current meta for group inheritance)
-        _collect_skills_recursive(sub_path, skills, meta if meta else parent_meta, depth + 1)
+        _collect_skills_recursive(sub_path, skills, lang, lang_root, meta if meta else parent_meta, depth + 1)
 
 
-def collect_skills() -> list[dict]:
-    """Walk SKILLS_ROOT subdirectories (recursively), collect Meta.md data."""
+def collect_skills(lang: str) -> list[dict]:
+    """Walk the language-specific subdirectory, collect Meta.md data.
+
+    Scans SKILLS_ROOT/{lang}/ for sub-skill directories with Meta.md files.
+    """
+    lang_root = os.path.join(SKILLS_ROOT, lang)
     skills: list[dict] = []
-    _collect_skills_recursive(SKILLS_ROOT, skills, parent_meta=None, depth=0)
+    _collect_skills_recursive(lang_root, skills, lang, lang_root, parent_meta=None, depth=0)
     return skills
 
 
-def assemble_skill_md(skills: list[dict]) -> str:
-    """Read Base.md, inject the generated skill index, return full content."""
-    if not os.path.isfile(BASE_PATH):
-        print(f"[gen_skill] ERROR: Base.md not found at {BASE_PATH}", file=sys.stderr)
+def assemble_skill_md(skills: list[dict], lang: str) -> str:
+    """Read TEMPLATE.md for the given language, inject the generated skill index, return full content."""
+    template_path, _ = get_paths(lang)
+    if not os.path.isfile(template_path):
+        print(f"[gen_skill] ERROR: TEMPLATE.md not found at {template_path}", file=sys.stderr)
         sys.exit(1)
 
-    with open(BASE_PATH, "r", encoding="utf-8") as f:
-        base_content = f.read()
+    with open(template_path, "r", encoding="utf-8") as f:
+        template_content = f.read()
 
     index_md = generate_skill_index(skills)
     placeholder = "<!-- SKILL_INDEX -->"
-    if placeholder not in base_content:
+    if placeholder not in template_content:
         print(
-            f"[gen_skill] ERROR: Placeholder '{placeholder}' not found in Base.md",
+            f"[gen_skill] ERROR: Placeholder '{placeholder}' not found in TEMPLATE.md",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    return base_content.replace(placeholder, index_md, 1)
+    return template_content.replace(placeholder, index_md, 1)
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Generate SKILL.md from Meta.md files")
+    parser.add_argument("--lang", default="en", help="Language code (e.g. 'en', 'zh'). Default: en")
+    args = parser.parse_args()
+    lang = args.lang
+
+    template_path, skill_output_path = get_paths(lang)
+
+    print(f"[gen_skill] Language: {lang}")
+    print(f"[gen_skill] Template: {template_path}")
+    print(f"[gen_skill] Output: {skill_output_path}")
     print("[gen_skill] Scanning skills/ for Meta.md files...")
-    skills = collect_skills()
+    skills = collect_skills(lang)
 
     if not skills:
         print("[gen_skill] No sub-skills with Meta.md found — SKILL.md will have an empty index.")
     else:
         print(f"[gen_skill] Found {len(skills)} sub-skill(s) with Meta.md")
 
-    # Generate SKILL.md (Base.md + skill index)
-    full_content = assemble_skill_md(skills)
+    # Generate SKILL.md (_template.md + skill index)
+    full_content = assemble_skill_md(skills, lang)
 
-    with open(SKILL_OUTPUT_PATH, "w", encoding="utf-8") as f:
+    with open(skill_output_path, "w", encoding="utf-8") as f:
         f.write(full_content)
 
-    print(f"[gen_skill] Generated: {SKILL_OUTPUT_PATH}")
-
-    # Generate standalone index table
-    table_md = generate_flat_table(skills)
-    with open(TABLE_OUTPUT_PATH, "w", encoding="utf-8") as f:
-        f.write(table_md)
-
-    print(f"[gen_skill] Generated: {TABLE_OUTPUT_PATH}")
+    print(f"[gen_skill] Generated: {skill_output_path}")
     print("[gen_skill] Done.")
 
 
