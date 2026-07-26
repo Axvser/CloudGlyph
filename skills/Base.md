@@ -20,6 +20,83 @@
 
 > **Language_List** — Wiki 的语言支持范围。Agent 应在第 1 步通过交互工具或直接询问确定用户所需语种，再比对 `languages.json` 验证可用性；不支持的语种记录差异并在最后告知用户，不中断流程。
 
+## 内容模型
+
+Wiki 采用"目录即页面"的组织方式。Agent 必须遵守以下两条核心规则：
+
+> **规则 1：目录名即导航结构** — 每个 Wiki 页面对应一个目录。目录名使用 `{数字}_` 前缀控制排序，如 `0_Welcome`、`01_project_structure`。Agent 在创建目录时须使用合适的数字前缀以保证页面顺序。
+
+> **规则 2：内容文件约定** — 每个目录下有且只有一个名为 `index.md` 的内容文件作为该页面的正文。目录内可包含更多子目录来表示子页面（子页面也遵守规则 1）。
+
+### 单项目 vs 多项目
+
+- **如果只文档化一个项目**（Project_List 中只有一个条目），则内容直接放在 `content/{lang}/` 下，无需额外项目层目录
+- **如果文档化多个项目**（Project_List 中有多个条目），则每个项目需要一层目录来隔离各自的内容，如 `1_MyApp/`、`2_MyLib/`
+
+```
+# 单项目示例
+content/en/
+├── 0_Welcome/
+│   └── index.md              ← 欢迎页（仅此页无子页）
+├── 1_quickstart/
+│   ├── index.md              ← 快速开始总览
+│   ├── 01_getting-started/
+│   │   └── index.md          ← 子页
+│   └── 02_advanced-usage/
+│       └── index.md          ← 子页
+├── 2_api/
+│   ├── index.md              ← API 总览
+│   ├── Controllers/
+│   │   └── index.md          ← 子页
+│   └── Services/
+│       └── index.md          ← 子页
+├── 3_architecture/
+│   ├── index.md              ← 架构总览
+│   ├── 01_project_structure/
+│   │   └── index.md          ← 子页
+│   ├── 02_class_hierarchy/
+│   │   └── index.md          ← 子页
+│   └── 03_request_lifecycle/
+│       └── index.md          ← 子页
+└── 4_copyright/
+    └── index.md              ← 版权（无子页）
+
+# 多项目示例
+content/en/
+├── 0_Welcome/
+│   └── index.md
+├── 1_MyApp/
+│   ├── 0_quickstart/
+│   │   ├── index.md
+│   │   ├── 01_getting-started/
+│   │   │   └── index.md
+│   │   └── 02_advanced-usage/
+│   │       └── index.md
+│   ├── 1_api/
+│   │   ├── index.md
+│   │   ├── Controllers/
+│   │   │   └── index.md
+│   │   └── Services/
+│   │       └── index.md
+│   └── 2_architecture/
+│       ├── index.md
+│       ├── 01_project_structure/
+│       │   └── index.md
+│       └── 02_class_hierarchy/
+│           └── index.md
+├── 2_MyLib/
+│   ├── 0_quickstart/
+│   │   ├── index.md
+│   │   └── 01_getting-started/
+│   │       └── index.md
+│   └── 1_api/
+│       ├── index.md
+│       └── Services/
+│           └── index.md
+└── 3_copyright/
+    └── index.md
+```
+
 ## 工作流
 
 > 0.开始
