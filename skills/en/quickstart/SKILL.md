@@ -60,3 +60,10 @@ builder.Services.AddHostedService<DataSyncService>();
 - Brief explanation before code (1-3 sentences)
 - Advanced patterns marked as "see API deep dive"
 - Output location: `content/{lang}/{Project}/quickstart/{Module}/index.md`
+
+## Post-Write Action
+
+After writing Quick Start content:
+
+- [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
+- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly

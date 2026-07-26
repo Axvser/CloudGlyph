@@ -114,3 +114,10 @@ All rights reserved.
 `content/{lang}/{Project}/copyright/index.md`
 
 每个语言目录下各生成一份，内容相同。
+
+## 写入后操作
+
+编写版权内容后：
+
+- [ ] **重新生成导航索引** — 运行树生成脚本（如 `python gen_tree.py`）重建 tree.json
+- [ ] **构建项目** — 运行 `dotnet build` 验证新内容正确嵌入

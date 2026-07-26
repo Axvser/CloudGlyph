@@ -6,7 +6,9 @@ Replace the default `0_Welcome/index.md` with a beautiful HTML landing page feat
 
 ## Prerequisites
 
-This is the last step of the workflow. Must wait until all content is written before executing.
+This step executes **after all content pages (Quick Start, APIs, SE Analysis, Copyright) are written, but before the Review step.** The Welcome page requires information from those pages (project name, module names, feature descriptions), so it cannot run earlier. However, it must be reviewed together with all other content.
+
+> **Workflow position:** Step 5 (Write Welcome) → Step 6-9 (Write content) → Step 10 (Review). The agent should place Welcome page writing right after all content exists, immediately before Review.
 
 ## Core Rules
 
@@ -86,6 +88,14 @@ Before writing the welcome page, verify the source material:
 - [ ] Emoji choices are thematically appropriate for the capability
 - [ ] Footer badges reflect real project attributes
 - [ ] Gradient colors match project brand (or defaults used)
+
+## Post-Write Action
+
+After writing/updating the Welcome page (and any other content page):
+
+- [ ] **Regenerate navigation index** — Run the tree.json generator script (e.g. `python gen_tree.py`) to update the navigation tree
+- [ ] **Verify tree output** — Confirm the regenerated tree.json includes all new pages and the Welcome page is the first root entry
+- [ ] **Build the project** — Run a build (`dotnet build`) to verify all assets are embedded correctly and the application compiles
 
 ## Output Location (relative to `WIKI_ROOT`)
 

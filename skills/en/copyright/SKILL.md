@@ -114,3 +114,10 @@ Use of this software is subject to the patent grant terms (see PATENTS file):
 `content/{lang}/{Project}/copyright/index.md`
 
 One copy per language directory, content is the same.
+
+## Post-Write Action
+
+After writing Copyright content:
+
+- [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
+- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly

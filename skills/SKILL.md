@@ -28,10 +28,55 @@ The Wiki uses a "directory-as-page" organization. The Agent must follow two core
 
 > **Rule 2: Content file convention** — Each directory must have exactly one `index.md` file as the page content. Directories may contain child subdirectories for sub-pages (which also follow Rule 1).
 
-### Single Project vs Multi Project
+> **Rule 3: Directory name must match the target language** — Directory names must be in the language of the content, not in English. For example, if `Language_List = ["zh"]`, use `0_欢迎` instead of `0_Welcome`, `1_快速入门` instead of `1_quickstart`, `2_API参考` instead of `2_api`, `3_架构分析` instead of `3_architecture`. Exception: Proper nouns and brand names (e.g. "VeloxDev", "MVVM", "AOP") that are universally recognized in their original form.
 
-- **If documenting a single project** (Project_List has one entry), content goes directly under `content/{lang}/`, no extra project-level directory needed
-- **If documenting multiple projects** (Project_List has multiple entries), each project needs a directory layer to isolate content, e.g. `1_MyApp/`, `2_MyLib/`
+### Content Organization (3-Tier)
+
+The Wiki uses a "directory-as-page" organization. The Agent determines the tier based on the number of entries in Project_List:
+
+| Tier | Scenario | Structure | When |
+|---|---|---|---|
+| **Single** | One project | `content/{lang}/` — content goes directly under language root | `Project_List` has **1 entry** |
+| **Multi** | 2-5 projects | `content/{lang}/{project}/` — each project gets its own directory | `Project_List` has **2-5 entries** |
+| **Framework / Monorepo** | 6+ projects | `content/{lang}/{category}/` — group by **functional category**, not by individual project | `Project_List` has **6+ entries** |
+
+**Framework / Monorepo tier rules:**
+- Categories are based on **functional areas** (e.g. Core, Adapters, Generator, Templates, Examples), not on individual project names
+- Create 2-8 category directories based on the module discovery results
+- Each category has a `0_quickstart/`, `1_api/`, `2_architecture/` sub-structure as needed
+- This prevents overwhelming navigation with 40+ individual project entries
+
+```
+# Example: Framework / Monorepo (40+ projects)
+content/en/
+├── 0_Welcome/
+│   └── index.md
+├── 1_Core/
+│   ├── 0_quickstart/
+│   │   └── index.md
+│   ├── 1_api/
+│   │   └── index.md
+│   └── 2_architecture/
+│       └── index.md
+├── 2_Adapters/
+│   ├── 0_quickstart/
+│   │   └── index.md
+│   └── 1_api/
+│       └── index.md
+├── 3_Generator/
+│   ├── 0_quickstart/
+│   │   └── index.md
+│   └── 1_api/
+│       └── index.md
+├── 4_Templates/
+│   └── 0_quickstart/
+│       └── index.md
+├── 5_Examples/
+│   └── 0_quickstart/
+│       └── index.md
+└── 6_copyright/
+	└── index.md
+```
 
 ```
 # Single project example
@@ -61,7 +106,7 @@ content/en/
 └── 4_copyright/
 	└── index.md              ← Copyright (no sub-pages)
 
-# Multi project example
+# Multi project example (2-5 projects)
 content/en/
 ├── 0_Welcome/
 │   └── index.md
@@ -109,34 +154,40 @@ content/en/
 
 > 4.Module discovery
 
-> 5.Write【Welcome】
+### Content Writing Phase (Steps 5-8)
 
-> 6.Write【Quick Start】
+Pages are written in **reader consumption order**: Quick Start (first read) → APIs → Architecture → Copyright (last read). This order ensures that earlier pages can reference later ones where appropriate.
 
-> 7.Write【APIs】
+> 5.Write【Quick Start】— `{category}/0_quickstart/` (index.md with getting-started code samples)
 
-> 8.Write【Software Engineering Analysis】
+> 6.Write【APIs】— `{category}/1_api/` (full API reference documentation)
 
-> 9.Write【Copyright】
+> 7.Write【Software Engineering Analysis】— `{category}/2_architecture/` (architecture, class diagrams, sequences)
 
-> 10.Review
+> 8.Write【Copyright】— `{category}/3_copyright/` (license and attribution)
+
+### Polish & Publish (Steps 9-11)
+
+> 9.Write【Welcome】— `0_Welcome/` (or `0_欢迎/` for zh). Execute after all content pages exist but before Review. Welcome is the first navigation entry but the **last page written** because it summarizes all other pages.
+
+> 10.Review — Full per-page audit including: code authenticity verification, diagram syntax check, navigation index regeneration (`python gen_tree.py`), and project build (`dotnet build`)
 
 > 11.End
 
 ## Skill Index
 
-子技能按场景组织到独立目录中。Agent 仅在用户请求匹配对应场景时加载子技能的 `SKILL.md`，切勿预加载。
+Sub-skills are organized into independent directories by scenario. The Agent should only load a sub-skill's `SKILL.md` when the user's request matches the corresponding scenario — do not pre-load.
 
-### 基础设置
+### Foundation Setup
 
-| 路径 | 场景 | 触发关键词 |
+| Path | Scenario | Trigger Keywords |
 |---|---|---|
 | `skills/en/context-setup/SKILL.md` | Variable confirmation — determine WIKI_ROOT, Solution_Root, Project_List, Language_List | Initialize workspace context, Determine Wiki root, Confirm solution and project list, Confirm language support scope |
 | `skills/en/tech-analysis/SKILL.md` | Tech stack analysis — identify project tech stack, entry points, and dependency chain | Analyze this repository, Understand project structure, Find entry points, Understand what this project does, How is this project organized |
 
-### 约束加载
+### Constraint Loading
 
-| 路径 | 场景 | 触发关键词 |
+| Path | Scenario | Trigger Keywords |
 |---|---|---|
 | `skills/en/lang-constraints/SKILL.md` | Load documentation conventions for the detected tech stack | Tech stack detected, need to load language conventions, Apply .NET documentation conventions, Apply Rust documentation conventions, Apply TypeScript documentation conventions, Apply Python documentation conventions, Apply Go documentation conventions, Apply C/C++ documentation conventions, Apply Java documentation conventions |
 | `  skills/en/lang-constraints/c-cpp/SKILL.md` | C / C++ documentation conventions |  |
@@ -147,9 +198,9 @@ content/en/
 | `  skills/en/lang-constraints/rust/SKILL.md` | Rust documentation conventions |  |
 | `  skills/en/lang-constraints/typescript/SKILL.md` | TypeScript / JavaScript documentation conventions |  |
 
-### 内容编写
+### Content Writing
 
-| 路径 | 场景 | 触发关键词 |
+| Path | Scenario | Trigger Keywords |
 |---|---|---|
 | `skills/en/api-docs/SKILL.md` | API documentation — extracting API docs from code analysis | Extract API from test code, Generate API documentation, Create API reference from tests, Document public APIs |
 | `skills/en/copyright/SKILL.md` | Copyright — writing copyright notices and license information | Write copyright notice, Document license information, Add contributor credits, Generate attribution |
@@ -158,9 +209,9 @@ content/en/
 | `skills/en/se-analysis/SKILL.md` | Software engineering analysis — architecture, class diagrams, sequences, API flow | Perform software engineering analysis, Draw architecture diagram, Analyze source code flow, Create class hierarchy document, Document request lifecycle |
 | `skills/en/welcome-page/SKILL.md` | Welcome page — beautiful HTML landing page | Beautify welcome page, Design landing page, Replace welcome page, Create Hero section for Wiki |
 
-### 质量保障
+### Quality Assurance
 
-| 路径 | 场景 | 触发关键词 |
+| Path | Scenario | Trigger Keywords |
 |---|---|---|
 | `skills/en/review/SKILL.md` | Review — Wiki content review and quality check | Review documentation quality, Check link validity, Audit Wiki content, Verify document structure, Ensure rendering compatibility |
 

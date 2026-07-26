@@ -91,13 +91,61 @@ def escape_pipe(text: str) -> str:
     return text.replace("|", "\\|")
 
 
-# Preferred group display order (any group not listed appears at the end)
+# Preferred group display order (canonical: Chinese tags from Meta.md)
 _GROUP_ORDER = [
     "基础设置",
     "约束加载",
     "内容编写",
     "质量保障",
 ]
+
+# Language-specific display configs for the generated index
+_LANG_CONFIG = {
+    "en": {
+        "intro": (
+            "Sub-skills are organized into independent directories by scenario. "
+            "The Agent should only load a sub-skill's `SKILL.md` when the user's request "
+            "matches the corresponding scenario \u2014 do not pre-load."
+        ),
+        "columns": ["Path", "Scenario", "Trigger Keywords"],
+        "groups": {
+            "基础设置": "Foundation Setup",
+            "约束加载": "Constraint Loading",
+            "内容编写": "Content Writing",
+            "质量保障": "Quality Assurance",
+        },
+    },
+    "zh": {
+        "intro": (
+            "子技能按场景组织到独立目录中。Agent 仅在用户请求匹配对应场景时加载子技能的 "
+            "`SKILL.md`，切勿预加载。"
+        ),
+        "columns": ["路径", "场景", "触发关键词"],
+        "groups": {
+            "基础设置": "基础设置",
+            "约束加载": "约束加载",
+            "内容编写": "内容编写",
+            "质量保障": "质量保障",
+        },
+    },
+}
+
+
+def _get_lang_text(lang: str, key: str, group_name: str | None = None) -> str:
+    """Get language-specific display text.
+
+    If *group_name* is given, looks up the group display name.
+    Otherwise looks up *key* (e.g. 'intro', 'columns').
+    """
+    cfg = _LANG_CONFIG.get(lang) or _LANG_CONFIG["en"]
+    if group_name is not None:
+        return cfg["groups"].get(group_name, group_name)
+    return cfg.get(key, "")  # type: ignore[return-value]
+
+
+def _get_lang_columns(lang: str) -> list[str]:
+    """Get the column header strings for the given language."""
+    return _LANG_CONFIG.get(lang, _LANG_CONFIG["en"])["columns"]
 
 
 def _group_sort_key(group: str) -> int:
@@ -107,11 +155,12 @@ def _group_sort_key(group: str) -> int:
         return len(_GROUP_ORDER)
 
 
-def generate_skill_index(skills: list[dict]) -> str:
+def generate_skill_index(skills: list[dict], lang: str = "en") -> str:
     """Generate the full Sub-Skill Directory Index markdown section.
 
     *skills* is a list of dicts with keys: group, route, description, workflow, phase, rules.
     Skills are grouped by [group] in the order defined by _GROUP_ORDER.
+    *lang* controls the display language (intro text, column headers, group names).
     Returns the markdown string (without the surrounding --- separators).
     """
     # Group by [group]
@@ -127,17 +176,16 @@ def generate_skill_index(skills: list[dict]) -> str:
     for group_name in groups:
         groups[group_name].sort(key=lambda s: s.get("route", ""))
 
+    columns = _get_lang_columns(lang)
     parts: list[str] = []
-    parts.append(
-        "子技能按场景组织到独立目录中。Agent 仅在用户请求匹配对应场景时加载子技能的 "
-        "`SKILL.md`，切勿预加载。"
-    )
+    parts.append(_get_lang_text(lang, "intro"))
     parts.append("")
 
     for group_name, items in sorted_groups:
-        parts.append(f"### {group_name}")
+        display_group = _get_lang_text(lang, "groups", group_name)
+        parts.append(f"### {display_group}")
         parts.append("")
-        parts.append("| 路径 | 场景 | 触发关键词 |")
+        parts.append(f"| {columns[0]} | {columns[1]} | {columns[2]} |")
         parts.append("|---|---|---|")
 
         for s in items:
@@ -336,7 +384,7 @@ def assemble_skill_md(skills: list[dict], lang: str) -> str:
     with open(template_path, "r", encoding="utf-8") as f:
         template_content = f.read()
 
-    index_md = generate_skill_index(skills)
+    index_md = generate_skill_index(skills, lang=lang)
     placeholder = "<!-- SKILL_INDEX -->"
     if placeholder not in template_content:
         print(

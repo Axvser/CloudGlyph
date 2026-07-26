@@ -93,3 +93,10 @@ Assert.Equal(expected, result);
 - May throw YException when X occurs
 - Null values cause Z behavior
 ```
+
+## Post-Write Action
+
+After writing API documentation:
+
+- [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
+- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly

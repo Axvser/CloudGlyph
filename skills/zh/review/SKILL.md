@@ -2,65 +2,67 @@
 
 ## 职责
 
-对所有生成的 Wiki 内容进行系统审查，确保质量、准确性和一致性。
+对所有生成的 Wiki 内容进行**系统性全面审查**，确保质量、准确性和一致性。这是对**每页、每段代码、每张图表**的完整审计，而非抽查。只有每个检查项都标记 ✅ 时才能通过质量门。
 
 ## 检查清单
 
 ### 模块覆盖率审计
 
-- [ ] 对照模块列表，检查所有模块是否都已写入文档
+- [ ] 对照模块列表中的**每一条目**，验证所有模块是否都已写入文档
 - [ ] 遗漏的模块立即补写
 
-### 代码真实性验证
+---
 
-- [ ] 每个代码块中涉及的方法名、参数名、类型确认存在于实际源码中
-- [ ] 不存在编造的代码
+### 代码真实性验证（关键 — 逐页全面审计）
 
-### 图语法验证
+对 Wiki 的**每一页**，提取所有包含 API 引用的代码块。对每个引用：
 
-- [ ] Mermaid：方向/类型有效、参与者已声明、括号平衡
-- [ ] KaTeX：`$...$` 和 `$$...$$` 成对平衡
-- [ ] PlantUML：`@startuml`/`@enduml` 成对、参与者已声明
+- [ ] **类/方法名** — 搜索代码库确认每个类型和成员存在且**签名一致**
+- [ ] **命名空间/模块路径** — 验证与实际项目结构匹配（例如 `global::VeloxDev.MVVM` 而非 `VeloxDev.MVVM.Abstractions`）
+- [ ] **方法参数和返回类型** — 交叉对比源码声明；文档必须符合实际
+- [ ] **异常声明** — 如果文档列出了异常，确认它在方法签名或 XML 注释中存在
+- [ ] **属性/字段名** — 文档中引用的每个属性或字段必须在声明的类型上存在
+- [ ] **已移除/已过时 API** — 标记任何文档中对 `[Obsolete]` 或已移除成员的引用
+- [ ] **无编造代码** — 每个代码块必须可追溯到真实的源文件
+
+---
+
+### 图表语法验证
+
+- [ ] **Mermaid** — 方向/类型有效、参与者已声明、括号平衡、箭头正确
+- [ ] **KaTeX** — 所有 `$...$` 和 `$$...$$` 行内/块级成对平衡，无错配分隔符
+- [ ] **PlantUML** — `@startuml` / `@enduml` 成对、参与者使用前已声明、`activate`/`deactivate` 成对、`alt`/`else`/`end` 结构正确
+
+---
 
 ### 结构一致性
 
-- [ ] 数字前缀正确（如 `01_`、`02_`）
-- [ ] 每个目录都存在 `index.md`
-- [ ] 不存在本地 Markdown 链接（`[text](local/path/)`）
+- [ ] 数字前缀符合约定（如 `01_`、`02_`）
+- [ ] 每个页面目录（根目录和子页面）都存在 `index.md`
+- [ ] 无本地 Markdown 链接（`[text](local/path/)`）
+- [ ] 页面标题和层级清晰可导航
+
+---
 
 ### 跨语言对等
 
-- [ ] 如果启用了多语言，检查所有页面在所有语言中是否存在
+- [ ] 如果启用多语言，**每个**页面在**所有**选定语言中都存在
+- [ ] 跨语言版本无缺失或过时页面
+
+---
+
+### 导航索引验证
+
+- [ ] **重新生成 tree.json** — 运行树生成脚本（如 `python gen_tree.py`）从当前目录结构重建导航索引
+- [ ] **验证 tree 输出** — 确认生成的 tree.json 包含**所有**新页面且嵌套正确
+- [ ] **构建项目** — 运行 `dotnet build` 确认应用编译通过且所有资源（包括新内容）已作为 AvaloniaResource 嵌入
 
 ## 预提交流程
 
-1. 逐项检查清单
-2. 对任何失败项立即修正
-3. 修正后重新检查
-4. 全部 ✅ 后通过质量门
-- [ ] **Structural consistency** — Numeric prefixes follow conventions, all required `index.md` files exist
-- [ ] **Rendering compatibility** — Mermaid/KaTeX/PlantUML syntax is correct and will render in AvalonMarkdown
-      - [ ] Mermaid: direction/type valid, arrows correct, participants declared, brackets balanced
-      - [ ] PlantUML: `@startuml`/`@enduml` balanced, participants declared, arrow directions explicit
-      - [ ] KaTeX: all `$...$` and `$$...$$` inline/block pairs are balanced, no mismatched delimiters
-- [ ] **Multi-language parity** — No missing or outdated pages across language versions
-- [ ] **Discoverability** — Page titles and hierarchy are clear and navigable
-
-### API Existence Verification (CRITICAL)
-
-Every API reference appearing in the written documentation must be verified against the **actual source code** of the target repository. This includes:
-
-- [ ] **Class/method names** in ` ``` ... ``` ` code examples — search the codebase to confirm each type and member exists with the documented signature
-- [ ] **Namespace/module paths** in documentation — verify they match the actual project structure
-- [ ] **Method parameters and return types** — cross-check against the source declaration; document must match reality
-- [ ] **Exception declarations** — if the doc lists thrown exceptions, confirm they exist in the method signature or are documented in XML comments
-- [ ] **Property/field names** — every property or field referenced in the doc must be present on the declared type
-- [ ] **Removed/deprecated APIs** — if the target repo has `[Obsolete]` attributes or removed members, flag any doc references to them
-
-### Pre-Commit Verification Flow
-
-1. For every page in the Wiki, extract all code blocks containing API references
-2. For each reference, use the repo-reading notes from Phase 1 or perform targeted symbol searches to confirm existence
-3. If an API reference cannot be verified, **flag it for correction** — either fix the doc to match reality or remove the reference
-4. Re-check diagram syntax (Mermaid/PlantUML) after any content corrections
-5. Only after all items are ✅, mark the quality gate as passed
+1. 对 Wiki 的**每一页**，提取所有包含 API 引用的代码块
+2. 对每个引用，使用阶段 1 的仓库阅读笔记或执行**定向符号搜索**来确认存在
+3. 如果 API 引用无法验证，**修正文档以匹配实际**或移除该引用
+4. 在内容修正后重新检查图表语法（Mermaid/PlantUML）
+5. 重新生成导航索引（`python gen_tree.py`）
+6. 构建项目（`dotnet build`）
+7. 只有所有项 ✅ 后，标记质量门为通过

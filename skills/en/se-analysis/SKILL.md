@@ -205,3 +205,10 @@ flowchart TD
 ## Output Location
 
 `content/{lang}/{Project}/architecture/`
+
+## Post-Write Action
+
+After writing SE Analysis content:
+
+- [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
+- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly

@@ -28,10 +28,55 @@ The Wiki uses a "directory-as-page" organization. The Agent must follow two core
 
 > **Rule 2: Content file convention** — Each directory must have exactly one `index.md` file as the page content. Directories may contain child subdirectories for sub-pages (which also follow Rule 1).
 
-### Single Project vs Multi Project
+> **Rule 3: Directory name must match the target language** — Directory names must be in the language of the content, not in English. For example, if `Language_List = ["zh"]`, use `0_欢迎` instead of `0_Welcome`, `1_快速入门` instead of `1_quickstart`, `2_API参考` instead of `2_api`, `3_架构分析` instead of `3_architecture`. Exception: Proper nouns and brand names (e.g. "VeloxDev", "MVVM", "AOP") that are universally recognized in their original form.
 
-- **If documenting a single project** (Project_List has one entry), content goes directly under `content/{lang}/`, no extra project-level directory needed
-- **If documenting multiple projects** (Project_List has multiple entries), each project needs a directory layer to isolate content, e.g. `1_MyApp/`, `2_MyLib/`
+### Content Organization (3-Tier)
+
+The Wiki uses a "directory-as-page" organization. The Agent determines the tier based on the number of entries in Project_List:
+
+| Tier | Scenario | Structure | When |
+|---|---|---|---|
+| **Single** | One project | `content/{lang}/` — content goes directly under language root | `Project_List` has **1 entry** |
+| **Multi** | 2-5 projects | `content/{lang}/{project}/` — each project gets its own directory | `Project_List` has **2-5 entries** |
+| **Framework / Monorepo** | 6+ projects | `content/{lang}/{category}/` — group by **functional category**, not by individual project | `Project_List` has **6+ entries** |
+
+**Framework / Monorepo tier rules:**
+- Categories are based on **functional areas** (e.g. Core, Adapters, Generator, Templates, Examples), not on individual project names
+- Create 2-8 category directories based on the module discovery results
+- Each category has a `0_quickstart/`, `1_api/`, `2_architecture/` sub-structure as needed
+- This prevents overwhelming navigation with 40+ individual project entries
+
+```
+# Example: Framework / Monorepo (40+ projects)
+content/en/
+├── 0_Welcome/
+│   └── index.md
+├── 1_Core/
+│   ├── 0_quickstart/
+│   │   └── index.md
+│   ├── 1_api/
+│   │   └── index.md
+│   └── 2_architecture/
+│       └── index.md
+├── 2_Adapters/
+│   ├── 0_quickstart/
+│   │   └── index.md
+│   └── 1_api/
+│       └── index.md
+├── 3_Generator/
+│   ├── 0_quickstart/
+│   │   └── index.md
+│   └── 1_api/
+│       └── index.md
+├── 4_Templates/
+│   └── 0_quickstart/
+│       └── index.md
+├── 5_Examples/
+│   └── 0_quickstart/
+│       └── index.md
+└── 6_copyright/
+	└── index.md
+```
 
 ```
 # Single project example
@@ -61,7 +106,7 @@ content/en/
 └── 4_copyright/
 	└── index.md              ← Copyright (no sub-pages)
 
-# Multi project example
+# Multi project example (2-5 projects)
 content/en/
 ├── 0_Welcome/
 │   └── index.md
@@ -109,17 +154,23 @@ content/en/
 
 > 4.Module discovery
 
-> 5.Write【Welcome】
+### Content Writing Phase (Steps 5-8)
 
-> 6.Write【Quick Start】
+Pages are written in **reader consumption order**: Quick Start (first read) → APIs → Architecture → Copyright (last read). This order ensures that earlier pages can reference later ones where appropriate.
 
-> 7.Write【APIs】
+> 5.Write【Quick Start】— `{category}/0_quickstart/` (index.md with getting-started code samples)
 
-> 8.Write【Software Engineering Analysis】
+> 6.Write【APIs】— `{category}/1_api/` (full API reference documentation)
 
-> 9.Write【Copyright】
+> 7.Write【Software Engineering Analysis】— `{category}/2_architecture/` (architecture, class diagrams, sequences)
 
-> 10.Review
+> 8.Write【Copyright】— `{category}/3_copyright/` (license and attribution)
+
+### Polish & Publish (Steps 9-11)
+
+> 9.Write【Welcome】— `0_Welcome/` (or `0_欢迎/` for zh). Execute after all content pages exist but before Review. Welcome is the first navigation entry but the **last page written** because it summarizes all other pages.
+
+> 10.Review — Full per-page audit including: code authenticity verification, diagram syntax check, navigation index regeneration (`python gen_tree.py`), and project build (`dotnet build`)
 
 > 11.End
 

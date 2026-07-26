@@ -60,3 +60,10 @@ builder.Services.AddHostedService<DataSyncService>();
 - 代码前有简短说明（1-3 句）
 - 高级模式标注「详见 API 深入解读」
 - 输出位置：`content/{lang}/{Project}/quickstart/{Module}/index.md`
+
+## 写入后操作
+
+编写快速入门内容后：
+
+- [ ] **重新生成导航索引** — 运行树生成脚本（如 `python gen_tree.py`）重建 tree.json
+- [ ] **构建项目** — 运行 `dotnet build` 验证新内容正确嵌入

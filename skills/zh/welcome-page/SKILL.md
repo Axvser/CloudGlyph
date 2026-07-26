@@ -6,7 +6,9 @@
 
 ## 前置要求
 
-这是工作流的最后一步。必须等待所有内容编写完成后再执行。
+此步骤在**所有内容页面（快速入门、API、软件工程分析、版权）编写完成后、审核步骤之前**执行。欢迎页需要引用其他页面的信息（项目名、模块名、功能描述），因此不能更早执行。但它必须与所有其他内容一起接受审核。
+
+> **工作流位置：** 步骤 5-8（内容编写）→ 步骤 9（编写欢迎页）→ 步骤 10（审核）。Agent 应在所有内容存在后、审核之前立即编写欢迎页。
 
 ## 核心规则
 
@@ -77,22 +79,30 @@ MIT License
 
 ---
 
-## Validation Checklist
+## 验证清单
 
-Before writing the welcome page, verify the source material:
+编写欢迎页之前，确认源材料：
 
-- [ ] Project name is from an actual build/config file (not guessed)
-- [ ] Tagline is descriptive of actual project capabilities
-- [ ] Each step card maps to a real user workflow (from demos/tests)
-- [ ] Each feature card corresponds to a verified module or capability
-- [ ] No feature is listed that lacks evidence from Steps 2-6
-- [ ] Emoji choices are thematically appropriate for the capability
-- [ ] Footer badges reflect real project attributes
-- [ ] Gradient colors match project brand (or defaults used)
+- [ ] 项目名来自实际的构建/配置文件（非猜测）
+- [ ] 标语准确描述项目实际能力
+- [ ] 每个步骤卡片映射到真实用户工作流（来自演示/测试）
+- [ ] 每个功能卡片对应已验证的模块或能力
+- [ ] 无缺乏步骤 2-6 证据的功能列出
+- [ ] Emoji 选择在主题上适合该能力
+- [ ] 底部徽章反映真实项目属性
+- [ ] 渐变颜色匹配项目品牌（或使用默认值）
 
-## Output Location (relative to `WIKI_ROOT`)
+## 写入后操作
 
-- English: `content/en/0_Welcome/index.md` — always produced
-- Additional languages: `content/{lang}/0_Welcome/index.md` — only for languages selected in §1 (Language Selection). Default is English only.
+编写/更新欢迎页（以及任何其他内容页面）后：
 
-All language variants share the same CSS and HTML structure; only the natural language text differs. Skip any language not in the active language list.
+- [ ] **重新生成导航索引** — 运行 tree.json 生成脚本（如 `python gen_tree.py`）更新导航树
+- [ ] **验证 tree 输出** — 确认生成的 tree.json 包含所有新页面且欢迎页是第一个根条目
+- [ ] **构建项目** — 运行 `dotnet build` 验证所有资源已正确嵌入且应用编译通过
+
+## 输出位置（相对于 `WIKI_ROOT`）
+
+- English: `content/en/0_Welcome/index.md` — 始终生成
+- 其他语言：`content/{lang}/0_Welcome/index.md` — 仅针对步骤 1（语言选择）中选定的语言。默认为仅 English。
+
+所有语言变体共享相同的 CSS 和 HTML 结构；仅自然语言文本不同。跳过不在活跃语言列表中的任何语言。

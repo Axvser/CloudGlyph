@@ -92,3 +92,10 @@ Assert.Equal(expected, result);
 - May throw YException when X occurs
 - Null values cause Z behavior
 ```
+
+## 写入后操作
+
+编写 API 文档后：
+
+- [ ] **重新生成导航索引** — 运行树生成脚本（如 `python gen_tree.py`）重建 tree.json
+- [ ] **构建项目** — 运行 `dotnet build` 验证新内容正确嵌入
