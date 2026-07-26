@@ -12,4 +12,9 @@
     <File Path="README.md" />
     <File Path="README.zh.md" />
   </Folder>
+  <Folder Name="/Scripts/">
+    <File Path="src/CloudGlyph/Assets/Docs/scripts/gen_lang_index.py" />
+    <File Path="src/CloudGlyph/Assets/Docs/scripts/gen_tree.py" />
+    <File Path="sync_template.py" />
+  </Folder>
 </Solution>
