@@ -31,6 +31,16 @@ Solution: MyApp.slnx
 # 功能：提供 RESTful API 端点
 ```
 
+**关键：同时检查与该模块相关的 Demo/示例和测试项目。** 这些揭示了实际的 API 表面和惯用使用模式：
+
+```
+# Examples/MyApp.Web/ 包含可运行的 REST API Demo
+# → 提取端点模式、中间件配置、DI 注册
+
+# tests/MyApp.Web.Tests/ 包含控制器测试
+# → 提取请求构造、状态码断言
+```
+
 ### 3. 梳理依赖关系
 
 读取 `.csproj` / 等效文件中的 ProjectReference 和 PackageReference：

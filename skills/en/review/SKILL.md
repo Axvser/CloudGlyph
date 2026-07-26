@@ -17,6 +17,7 @@ Systematically review **all** generated Wiki content to ensure quality, accuracy
 
 For **every page** in the Wiki, extract all code blocks containing API references. For each reference:
 
+- [ ] **Discovery Priority compliance** — Verify that code samples came from Demo projects (Priority 1) or Tests (Priority 2) first. If only Priority 3 (inferred from source) was used, confirm it is explicitly marked as *inferred*.
 - [ ] **Class/method names** — search the codebase to confirm each type and member exists **with the documented signature**
 - [ ] **Namespace/module paths** — verify they match the actual project structure (e.g. `global::VeloxDev.MVVM` not `VeloxDev.MVVM.Abstractions`)
 - [ ] **Method parameters and return types** — cross-check against the source declaration; document must match reality

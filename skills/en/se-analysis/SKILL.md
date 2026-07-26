@@ -13,15 +13,27 @@ Produce rigorous software engineering analysis documentation. Use **PlantUML** f
 
 ## Page Plan
 
-| Page | Content | Rendering |
-|---|---|---|
-| `01_project_structure/index.md` | Module map, package dependency graph | Mermaid flowchart + tables |
-| `02_class_hierarchy/index.md` | Core types, interfaces, inheritance | Mermaid classDiagram |
-| `03_startup_flow/index.md` | Bootstrap sequence, DI registration | PlantUML sequence diagram |
-| `04_request_lifecycle/index.md` | Request→response full pipeline | PlantUML sequence + flowchart |
-| `05_api_sequences/index.md` | API call sequences (core business scenarios) | **PlantUML** |
-| `06_data_flow/index.md` | State changes, event-driven, messaging | Mermaid flowchart |
-| `07_dependencies/index.md` | External dependencies, middleware, third-party | Tables + architecture diagram |
+The Architecture section is organized into the following pages. Each page after 3-2 uses **sub-pages grouped by functional module/feature** (discovered in the Module Discovery phase), so each feature gets its own dedicated analysis.
+
+| Page | Content | Rendering | Sub-page strategy |
+|---|---|---|---|
+| `0_file_structure/index.md` | Repository layout, directory tree, project-to-folder mapping | Mermaid flowchart + tree | Single overview page |
+| `1_functional_structure/index.md` | Module responsibility boundaries, feature-to-project mapping, entry point identification | Mermaid flowchart + tables | Single overview page |
+| `2_design_patterns/index.md` | **Design pattern analysis** — one sub-page per feature/module | Mermaid classDiagram + tables | `2_design_patterns/{Feature}/index.md` — one sub-page per feature |
+| `3_data_flow/index.md` | **Data flow analysis** — sequence diagrams for each feature's API call chain | **PlantUML** sequence diagrams | `3_data_flow/{Feature}/index.md` — one sub-page per feature |
+| `4_complexity/index.md` | **Complexity analysis** — time/space complexity for each feature's core operations | KaTeX + tables | `4_complexity/{Feature}/index.md` — one sub-page per feature |
+
+### Page Detail
+
+**0_file_structure** — Repository layout showing all source directories, test directories, example directories, and their relationships. One static tree view.
+
+**1_functional_structure** — Which features exist and which projects own them. Tables mapping feature → owning project → dependencies.
+
+**2_design_patterns/{Feature}/index.md** — For each feature module (e.g. MVVM, AOP, Workflow), analyze the design patterns employed. Mermaid class diagrams showing interfaces, base classes, and concrete implementations. Identify patterns such as: Command Pattern (VeloxCommand), Proxy Pattern (AOP), Observer Pattern (VeloxProperty), Strategy Pattern (Eases), Template Method (TransitionCore), etc.
+
+**3_data_flow/{Feature}/index.md** — For each feature module, produce PlantUML sequence diagrams showing the complete call chain for core API operations. Cover: normal flow, error/exception paths, and async/event-driven scenarios where applicable.
+
+**4_complexity/{Feature}/index.md** — For each feature module, analyze the time and space complexity of its core operations. Use KaTeX for formulas. Cover: construction, execution, look-up, serialization, and memory usage. Example: `O(n)` for linear operations, `O(log n)` for spatial hash lookups, `O(1)` for property access.
 
 ## API Call Sequence Diagrams (PlantUML)
 
@@ -204,7 +216,12 @@ flowchart TD
 
 ## Output Location
 
-`content/{lang}/{Project}/architecture/`
+Base page: `content/{lang}/{category}/architecture/index.md`
+Sub-pages: `content/{lang}/{category}/architecture/{page_group}/{Feature}/index.md`
+
+For **Single project** tier: `content/{lang}/architecture/{page_group}/{Feature}/index.md`
+For **Multi project** tier: `content/{lang}/{project}/architecture/{page_group}/{Feature}/index.md`
+For **Framework/Monorepo** tier: `content/{lang}/{category}/architecture/{page_group}/{Feature}/index.md`
 
 ## Post-Write Action
 

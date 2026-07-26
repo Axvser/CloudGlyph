@@ -30,24 +30,31 @@ The Wiki uses a "directory-as-page" organization. The Agent must follow two core
 
 > **Rule 3: Directory name must match the target language** — Directory names must be in the language of the content, not in English. For example, if `Language_List = ["zh"]`, use `0_欢迎` instead of `0_Welcome`, `1_快速入门` instead of `1_quickstart`, `2_API参考` instead of `2_api`, `3_架构分析` instead of `3_architecture`. Exception: Proper nouns and brand names (e.g. "VeloxDev", "MVVM", "AOP") that are universally recognized in their original form.
 
-### Content Organization (3-Tier)
+### Content Organization (Type-Based Decision)
 
-The Wiki uses a "directory-as-page" organization. The Agent determines the tier based on the number of entries in Project_List:
+The Wiki uses a "directory-as-page" organization. The Agent **must not** decide the structure based on project count alone. Instead, determine the **nature of the target** being documented:
 
-| Tier | Scenario | Structure | When |
-|---|---|---|---|
-| **Single** | One project | `content/{lang}/` — content goes directly under language root | `Project_List` has **1 entry** |
-| **Multi** | 2-5 projects | `content/{lang}/{project}/` — each project gets its own directory | `Project_List` has **2-5 entries** |
-| **Framework / Monorepo** | 6+ projects | `content/{lang}/{category}/` — group by **functional category**, not by individual project | `Project_List` has **6+ entries** |
+#### Decision Rule
 
-**Framework / Monorepo tier rules:**
-- Categories are based on **functional areas** (e.g. Core, Adapters, Generator, Templates, Examples), not on individual project names
+> **Is the target a self-contained framework, class library, or product?** (e.g. WPF, Entity Framework, VeloxDev, React, a NuGet library, a game engine, etc.)
+
+| If... | Then... |
+|---|---|
+| **Yes** — it is a cohesive product/framework/library | Always use **Category** organization: `content/{lang}/{category}/` — group by **functional area** (Core, Adapters, Tools, etc.), never by individual `.csproj`. Ignore how many sub-projects it has. |
+| **No** — the solution is a collection of independent apps/tools/services | **Ask the user** how to organize. Present the available options and let them decide. Do not guess. |
+
+> **Rationale:** A framework with 40+ sub-projects is still one thing (the framework). A solution with 2 completely independent web apps is two separate things. Count alone cannot distinguish these cases.
+
+#### Category Organization (for frameworks, libraries, products)
+
+- Categories sit **directly under `content/{lang}/`** — no `{ProductName}/` or `{SolutionName}/` wrapper directory
+- Categories are based on **functional areas** discovered in Module Discovery, not on individual project names
 - Create 2-8 category directories based on the module discovery results
 - Each category has a `0_quickstart/`, `1_api/`, `2_architecture/` sub-structure as needed
-- This prevents overwhelming navigation with 40+ individual project entries
+- **Important:** Do NOT create a `{Project}/` or `{Product}/` wrapper directory. Example: `content/zh/1_Core/0_quickstart/` is correct; `content/zh/VeloxDev/1_Core/0_quickstart/` is wrong.
 
 ```
-# Example: Framework / Monorepo (40+ projects)
+# Example: Category organization (framework / library / product)
 content/en/
 ├── 0_Welcome/
 │   └── index.md
@@ -78,35 +85,11 @@ content/en/
 	└── index.md
 ```
 
-```
-# Single project example
-content/en/
-├── 0_Welcome/
-│   └── index.md              ← Welcome page (no sub-pages)
-├── 1_quickstart/
-│   ├── index.md              ← Quick start overview
-│   ├── 01_getting-started/
-│   │   └── index.md          ← Sub-page
-│   └── 02_advanced-usage/
-│       └── index.md          ← Sub-page
-├── 2_api/
-│   ├── index.md              ← API overview
-│   ├── Controllers/
-│   │   └── index.md          ← Sub-page
-│   └── Services/
-│       └── index.md          ← Sub-page
-├── 3_architecture/
-│   ├── index.md              ← Architecture overview
-│   ├── 01_project_structure/
-│   │   └── index.md          ← Sub-page
-│   ├── 02_class_hierarchy/
-│   │   └── index.md          ← Sub-page
-│   └── 03_request_lifecycle/
-│       └── index.md          ← Sub-page
-└── 4_copyright/
-	└── index.md              ← Copyright (no sub-pages)
+#### Per-Project Organization (only when user explicitly chooses this)
 
-# Multi project example (2-5 projects)
+If the user opts for per-project structure (e.g. a solution containing multiple independent apps):
+
+```
 content/en/
 ├── 0_Welcome/
 │   └── index.md
@@ -141,6 +124,26 @@ content/en/
 └── 3_copyright/
 	└── index.md
 ```
+```
+
+## Code Authenticity Priority (CRITICAL)
+
+Every code snippet in Wiki documentation **must** come from a real source. The Agent must follow this strict priority hierarchy when discovering API usage examples:
+
+> **Priority 1 (Highest) — Demo/Example projects**
+> Scan `Examples/` or `samples/` directories for real-world usage. These show the intended top-level API surface and the most idiomatic patterns.
+> 
+> **Priority 2 — Unit Tests**
+> Extract usage patterns from test files (e.g. `*Test*.cs`, `*Spec*.cs`). Tests exercise real APIs with real parameters and edge cases.
+>
+> **Priority 3 (Fallback) — Source code self-discovery**
+> Only when no Demo or Test exists for a module: read the source code interfaces, extract method signatures, and construct minimal usage examples. These must be explicitly marked as *inferred* if not verified against an actual call site.
+>
+> **Rule:** If a code block contains a class name, method name, or API call that does not exist in the codebase, it is a **fabrication** and must be fixed before the Review step. The Agent must verify every referenced symbol by searching the actual source files.
+
+## Code Styling
+
+The SKILL system imposes **no requirements** on code indentation or formatting style in documentation code blocks. The Agent should follow the indentation style already present in the project's own source files (tabs, spaces, etc.), or use whichever produces readable, consistent output.
 
 ## Workflow
 
@@ -156,7 +159,34 @@ content/en/
 
 ### Content Writing Phase (Steps 5-8)
 
-Pages are written in **reader consumption order**: Quick Start (first read) → APIs → Architecture → Copyright (last read). This order ensures that earlier pages can reference later ones where appropriate.
+Pages are written in **reader consumption order**: Quick Start → APIs → Architecture → Copyright. This order ensures that earlier pages can reference later ones where appropriate.
+
+#### ⚡ Per-Module Micro-Loop (Steps 5→6→7)
+
+When `Project_List` contains **multiple modules**, Steps 5→6→7 execute as a **micro-loop per module**, not as three batch passes across all modules. This prevents context overload and ensures each module's API and analysis chapters benefit from the module-specific Quick Start written just before them.
+
+**Correct pattern — per-module micro-loop:**
+```
+For Module A:
+  5.Write【Quick Start for Module A】
+  6.Write【APIs for Module A】
+  7.Write【SE Analysis for Module A】
+For Module B:
+  5.Write【Quick Start for Module B】
+  6.Write【APIs for Module B】
+  7.Write【SE Analysis for Module B】
+... (repeat for each module)
+Then 8.Write【Copyright】 (global, one pass)
+```
+
+**Wrong pattern — batch per step (do NOT do this):**
+```
+5.Write【Quick Start for ALL modules】   ← Token explosion, context loss
+6.Write【APIs for ALL modules】
+7.Write【SE Analysis for ALL modules】
+```
+
+For **single-project** tier (only 1 module), the micro-loop collapses naturally to one iteration; treat it the same way.
 
 > 5.Write【Quick Start】— `{category}/0_quickstart/` (index.md with getting-started code samples)
 
@@ -173,6 +203,17 @@ Pages are written in **reader consumption order**: Quick Start (first read) → 
 > 10.Review — Full per-page audit including: code authenticity verification, diagram syntax check, navigation index regeneration (`python gen_tree.py`), and project build (`dotnet build`)
 
 > 11.End
+
+### Workflow Continuity
+
+The workflow must **never silently stop** due to tool-call limits, token limits, timeouts, or any other infrastructure constraint. If the Agent reaches an execution limit or encounters a discontinuity:
+
+1. **Do not fabricate results** to simulate completion
+2. **Record observation** of where the workflow stopped and what has been done
+3. **Ask the user** whether to continue, providing the current progress summary and estimated remaining work
+4. Resume from the recorded checkpoint upon user confirmation
+
+This rule applies to all phases: Module Discovery, Content Writing, and Review. A partial output is acceptable only if the user explicitly agrees to terminate early.
 
 ## Skill Index
 

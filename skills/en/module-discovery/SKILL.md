@@ -31,6 +31,16 @@ For each project, read its internal directory structure and representative files
 # Purpose: Provides RESTful API endpoints
 ```
 
+**Critical: Also check for Demo/Example and Test projects related to each module.** These reveal the actual API surface and idiomatic usage patterns:
+
+```
+# Examples/MyApp.Web/ contains a working REST API demo
+# → Extract endpoint patterns, middleware setup, DI registration
+
+# tests/MyApp.Web.Tests/ has controller tests
+# → Extract request construction, status code assertions
+```
+
 ### 3. Map Dependencies
 
 Read ProjectReference and PackageReference from `.csproj` / equivalent files:

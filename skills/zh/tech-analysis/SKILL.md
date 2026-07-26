@@ -78,5 +78,5 @@
 ## Role in the Default Path
 
 - The output of this phase is **structured notes**, not written directly to the Wiki
-- Notes are consumed as input by Phase 2 (API Docs) and Phase 3 (SE Analysis)
-- Upon completion, auto-advance to Phase 2: `api-docs/SKILL.md`
+- Notes are consumed as input by Phase 6 (API Docs) and Phase 7 (SE Analysis)
+- Upon completion, auto-advance to Phase 3: `lang-constraints/SKILL.md`

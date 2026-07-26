@@ -8,7 +8,7 @@ Replace the default `0_Welcome/index.md` with a beautiful HTML landing page feat
 
 This step executes **after all content pages (Quick Start, APIs, SE Analysis, Copyright) are written, but before the Review step.** The Welcome page requires information from those pages (project name, module names, feature descriptions), so it cannot run earlier. However, it must be reviewed together with all other content.
 
-> **Workflow position:** Step 5 (Write Welcome) → Step 6-9 (Write content) → Step 10 (Review). The agent should place Welcome page writing right after all content exists, immediately before Review.
+> **Workflow position:** Step 9 (Write Welcome). Executes after all content pages exist (Steps 5-8) but before Review (Step 10). The agent should place Welcome page writing right after all content exists, immediately before Review.
 
 ## Core Rules
 

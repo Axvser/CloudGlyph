@@ -6,6 +6,19 @@ Write complete API reference documentation for each functional module. More in-d
 
 ## Writing Requirements
 
+### API Discovery Priority
+
+When extracting API documentation, follow this strict priority hierarchy:
+
+> **Priority 1 — Demo/Example projects**
+> Scan `Examples/` directories for real-world usage of the API. Demo projects reveal the intended public API surface and the most idiomatic invocation patterns.
+>
+> **Priority 2 — Unit Tests**
+> Extract API signatures, typical input/output, and edge cases from test files. Tests provide real parameter values, assertion expectations, and exception paths.
+>
+> **Priority 3 (Fallback) — Source code interfaces**
+> Only when no Demo or Test exists: read the public API signatures directly from source files. These must be explicitly marked as *inferred*.
+
 ### Semantic Level
 
 - What problem does this API solve? (high-level intent, not just the method name)

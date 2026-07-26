@@ -78,5 +78,5 @@ Dependencies: ASP.NET Core 8.0, Entity Framework Core, Serilog
 ## Role in the Default Path
 
 - The output of this phase is **structured notes**, not written directly to the Wiki
-- Notes are consumed as input by Phase 7 (API Docs) and Phase 8 (SE Analysis)
+- Notes are consumed as input by Phase 6 (API Docs) and Phase 7 (SE Analysis)
 - Upon completion, auto-advance

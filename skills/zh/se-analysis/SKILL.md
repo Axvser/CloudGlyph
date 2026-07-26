@@ -13,15 +13,27 @@
 
 ## 页面规划
 
-| 页面 | 内容 | 渲染方式 |
-|---|---|---|
-| `01_project_structure/index.md` | 模块地图、包依赖图 | Mermaid flowchart + 表格 |
-| `02_class_hierarchy/index.md` | 核心类型、接口、继承关系 | Mermaid classDiagram |
-| `03_startup_flow/index.md` | 引导序列、DI 注册 | PlantUML 时序图 |
-| `04_request_lifecycle/index.md` | 请求→响应完整管道 | PlantUML 时序图 + flowchart |
-| `05_api_sequences/index.md` | API 调用时序（核心业务场景） | **PlantUML** |
-| `06_data_flow/index.md` | 状态变化、事件驱动、消息传递 | Mermaid flowchart |
-| `07_dependencies/index.md` | 外部依赖、中间件、第三方集成 | 表格 + 架构图 |
+架构分析章节按以下页面组织。3-2 之后的每个页面使用按功能模块/特性分组的**子页面**（由模块发现阶段识别），每个特性获得各自的分析页面。
+
+| 页面 | 内容 | 渲染方式 | 子页面策略 |
+|---|---|---|---|
+| `0_文件结构/index.md` | 仓库布局、目录树、项目到文件夹映射 | Mermaid flowchart + 树 | 单概览页面 |
+| `1_功能结构/index.md` | 模块职责边界、功能到项目映射、入口点识别 | Mermaid flowchart + 表格 | 单概览页面 |
+| `2_设计模式分析/index.md` | **设计模式分析** — 每个功能/模块一个子页面 | Mermaid classDiagram + 表格 | `2_设计模式分析/{Feature}/index.md` |
+| `3_数据流分析/index.md` | **数据流分析** — 每个功能的 API 调用链时序图 | **PlantUML** 时序图 | `3_数据流分析/{Feature}/index.md` |
+| `4_复杂度分析/index.md` | **复杂度分析** — 每个功能核心操作的时间/空间复杂度 | KaTeX + 表格 | `4_复杂度分析/{Feature}/index.md` |
+
+### 页面详情
+
+**0_文件结构** — 仓库布局展示所有源目录、测试目录、示例目录及其关系。一张静态树图。
+
+**1_功能结构** — 哪些功能存在以及哪些项目拥有它们。表格映射 功能 → 拥有的项目 → 依赖。
+
+**2_设计模式分析/{Feature}/index.md** — 对每个功能模块（如 MVVM、AOP、Workflow），分析其使用的设计模式。Mermaid 类图展示接口、基类和具体实现。识别模式如：命令模式（VeloxCommand）、代理模式（AOP）、观察者模式（VeloxProperty）、策略模式（Eases）、模板方法模式（TransitionCore）等。
+
+**3_数据流分析/{Feature}/index.md** — 对每个功能模块，生成 PlantUML 时序图展示核心 API 操作的完整调用链。涵盖：正常流程、错误/异常路径以及异步/事件驱动场景。
+
+**4_复杂度分析/{Feature}/index.md** — 对每个功能模块，分析其核心操作的时间和空间复杂度。使用 KaTeX 表达公式。涵盖：构造、执行、查找、序列化和内存使用。示例：`O(n)` 线性操作、`O(log n)` 空间哈希查找、`O(1)` 属性访问。
 
 ## API 调用时序图（PlantUML）
 
@@ -204,7 +216,12 @@ flowchart TD
 
 ## 输出位置
 
-`content/{lang}/{Project}/architecture/`
+基础页面：`content/{lang}/{category}/架构分析/index.md`
+子页面：`content/{lang}/{category}/架构分析/{page_group}/{Feature}/index.md`
+
+对于**单项目**层级：`content/{lang}/架构分析/{page_group}/{Feature}/index.md`
+对于**多项目**层级：`content/{lang}/{project}/架构分析/{page_group}/{Feature}/index.md`
+对于**框架/单体仓库**层级：`content/{lang}/{category}/架构分析/{page_group}/{Feature}/index.md`
 
 ## 写入后操作
 
