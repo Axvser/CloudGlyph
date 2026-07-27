@@ -38,42 +38,6 @@ def run_git(cmd: list[str], cwd: Path | None = None, check: bool = True) -> subp
         sys.exit(1)
 
 
-def check_sync(repo_root: Path) -> bool:
-    """Return True if local checkout matches the template remote HEAD.
-
-    Uses ``git ls-remote`` to check the template repository directly,
-    so it works for both the original template repo and downstream projects.
-    """
-    # Get local HEAD commit
-    local = run_git(["rev-parse", "HEAD"], cwd=repo_root).stdout.strip()
-    if not local:
-        log("ERROR: Could not resolve local HEAD.")
-        sys.exit(1)
-
-    # Query the template remote for the latest commit on the target branch
-    log(f"Checking remote template ({BRANCH} branch)...")
-    result = run_git(
-        ["ls-remote", REPO_URL, f"refs/heads/{BRANCH}"],
-        cwd=repo_root,
-        check=False,
-    )
-    remote_sha = result.stdout.strip().split(maxsplit=1)[0] if result.stdout.strip() else ""
-
-    if result.returncode != 0 or not remote_sha:
-        stderr = result.stderr.strip() if result.stderr else "(no stderr)"
-        log(f"ERROR: Could not contact template remote at {REPO_URL} (exit {result.returncode}):")
-        for line in stderr.splitlines():
-            log(f"  git: {line}")
-        sys.exit(1)
-
-    synced = local == remote_sha
-    if synced:
-        log(f"Local HEAD ({local[:8]}) matches template {BRANCH} ({remote_sha[:8]}).")
-    else:
-        log(f"Local HEAD ({local[:8]}) differs from template {BRANCH} ({remote_sha[:8]}).")
-    return synced
-
-
 def clone_to_temp(repo_root: Path) -> Path:
     """Clone the repository to a temporary directory and return its path."""
     tmp = Path(tempfile.mkdtemp(prefix="cloudglyph_sync_"))
@@ -166,9 +130,9 @@ def sync_files(source: Path, target: Path) -> None:
 def main() -> None:
     repo_root = Path(__file__).resolve().parent
 
-    if not (repo_root / ".git").is_dir():
-        log("ERROR: This script must be run from within a Git repository.")
-        sys.exit(1)
+    has_git = (repo_root / ".git").is_dir()
+    if not has_git:
+        log("Warning: No .git directory found. Template files will be synced, but version history (.git) will not be copied.")
 
     if not shutil.which("git"):
         log("ERROR: Git is not installed or not in PATH.")
@@ -176,16 +140,11 @@ def main() -> None:
 
     log(f"Repository root: {repo_root}")
 
-    # Step 1: Check sync status
-    if check_sync(repo_root):
-        log("No update needed.")
-        return
-
-    # Step 2: Clone to temp
+    # Clone template to temp directory and sync
     tmp = clone_to_temp(repo_root)
 
     try:
-        # Step 3: Sync files
+        # Sync files from template to local repository
         sync_files(tmp, repo_root)
     finally:
         # Cleanup temp directory
