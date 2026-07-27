@@ -59,6 +59,7 @@ For **every page** in the Wiki, extract all code blocks containing API reference
 - [ ] Numeric prefixes follow conventions (e.g. `01_`, `02_`)
 - [ ] `index.md` exists in **every** page directory (root and sub-pages)
 - [ ] No local Markdown links (`[text](local/path/)`) — use relative navigation via the tree instead
+- [ ] **Prune untracked entries** — Any document page or directory **not produced by the current workflow** must be deleted. If removing all affected files empties a parent directory and that does not break the current output structure, the empty directory must also be removed.
 
 ---
 

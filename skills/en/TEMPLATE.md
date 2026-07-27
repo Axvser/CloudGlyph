@@ -26,6 +26,8 @@ Strictly follow the workflow defined in this SKILL to produce Wiki documentation
 
 ⚙ index.md - Each {ID}_{PageName}/ must have exactly one fixed-name index.md file, otherwise the directory structure will be incomplete. md files may be left blank. More subdirectories can be added to represent sub-items.
 
+⚙ Every directory in the output path MUST contain an index.md — this includes intermediate/parent directories, not just leaf directories. After creating any new subdirectory, immediately verify an index.md exists in every ancestor directory of that path. A common mistake is to create e.g. `2_design_patterns/0_Workflow/index.md` while forgetting `2_design_patterns/index.md`.
+
 Ultimately, the directory will present the following structure. These are five fixed dimensions, and /.../ means you may extend sub-items and add content based on specific functional divisions under the dimension, with no depth limit.
 
 > Wiki_Root/0_Welcome/
@@ -37,6 +39,12 @@ Ultimately, the directory will present the following structure. These are five f
 > Wiki_Root/3_SE_Analysis/.../
 
 > Wiki_Root/4_Copyright/.../
+
+## Code Style Conventions
+
+⚙ Before writing code blocks in Wiki output, scan source files under 【Project_Root】 to detect the dominant indentation style (tabs vs spaces + width). Generated code blocks MUST match that style. When detection is ambiguous, default to **4 spaces** for .NET/C# projects.
+
+⚙ When extracting code snippets from source files (Demo / Test / source), preserve their original whitespace style — do not convert tabs to spaces or vice versa.
 
 ## Accessibility Conventions
 
