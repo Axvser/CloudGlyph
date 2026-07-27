@@ -2,7 +2,7 @@
 
 ## Responsibility
 
-Systematically review **all** generated Wiki content to ensure quality, accuracy, and consistency. This is a **full audit** of every page, every code sample, and every diagram — not a spot check. Only pass the quality gate when every checklist item is marked ✅.
+Review and correct each deliverable one by one
 
 ## Checklist
 

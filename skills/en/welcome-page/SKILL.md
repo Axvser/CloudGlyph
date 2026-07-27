@@ -2,104 +2,237 @@
 
 ## Responsibility
 
-Replace the default `0_Welcome/index.md` with a beautiful HTML landing page featuring CSS animations and card layout.
+Create a welcome page from the template that fits the current project
 
-## Prerequisites
+## Constraints
 
-This step executes **after all content pages (Quick Start, APIs, SE Analysis, Copyright) are written, but before the Review step.** The Welcome page requires information from those pages (project name, module names, feature descriptions), so it cannot run earlier. However, it must be reviewed together with all other content.
+⚠ Do not modify the established layout, such as changing page size or adding ScrollViewer, etc.
 
-> **Workflow position:** Step 9 (Write Welcome). Executes after all content pages exist (Steps 5-8) but before Review (Step 10). The agent should place Welcome page writing right after all content exists, immediately before Review.
+✔ Colors and animation effects may be modified
 
-## Core Rules
+✔ Text content and feature entries may be modified
 
-### No Fabrication
+## Output Location
 
-Everything on the welcome page must come from actual analysis results. Project name, module names, feature descriptions, icon selections, and links must all be traceable to previous steps.
+Wiki_Root/content/{language}/0_Welcome/index.md
 
-### Fixed Outer Container
+## Template
 
 ```html
-<div class="cg-wrapper">    ← This container must not be modified
-  <!-- Inner content can be customized -->
+
+<style>
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-9px); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes pop-in {
+    0% { opacity: 0; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-color, #4a9eff) 0%, transparent); }
+    50% { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--accent-color, #4a9eff) 25%, transparent); }
+  }
+
+  .cg-wrapper * {
+    will-change: transform, opacity;
+  }
+
+  .step-card {
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.35s ease;
+    animation: pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .step-card:hover {
+    transform: translateY(-5px) scale(1.04);
+    opacity: 0.8 !important;
+    box-shadow: 0 0 18px 2px color-mix(in srgb, var(--accent-color, #4a9eff) 25%, transparent);
+  }
+
+  .step-icon {
+    display: inline-block;
+    animation: float 3.5s ease-in-out infinite;
+  }
+  .step-icon-delayed {
+    display: inline-block;
+    animation: float 3.5s ease-in-out 0.6s infinite;
+  }
+  .step-icon-slow {
+    display: inline-block;
+    animation: float 3.5s ease-in-out 1.2s infinite;
+  }
+
+  .feat-card {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+    animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .feat-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    opacity: 0.7 !important;
+    border-color: var(--accent-color, #4a9eff) !important;
+    box-shadow: 0 0 14px 1px color-mix(in srgb, var(--accent-color, #4a9eff) 20%, transparent);
+  }
+
+  .feat-icon {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .feat-card:hover .feat-icon {
+    transform: scale(1.4) rotate(6deg);
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #4a9eff, #a78bfa, #f472b6, #4a9eff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+
+  .glow-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin: 0 4px;
+    vertical-align: middle;
+    animation: glow-pulse 1.8s ease-in-out infinite;
+  }
+  .gradient-rule {
+    width: clamp(36px, 8vw, 60px);
+    margin: 0 auto clamp(1em, 3vw, 2.2em);
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-color, #4a9eff), #a78bfa, #f472b6);
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+  .cg-wrapper {
+    text-align: center;
+    padding: clamp(24px, 5vw, 50px) clamp(12px, 3vw, 28px);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .cg-title {
+    font-size: clamp(1.6em, 6vw, 2.8em);
+    margin-bottom: 0.1em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .cg-subtitle {
+    font-size: clamp(0.9em, 2.5vw, 1.15em);
+    opacity: 0.55;
+    margin-bottom: clamp(0.8em, 3vw, 2em);
+  }
+  .cg-steps {
+    display: flex;
+    gap: clamp(10px, 2vw, 20px);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: clamp(1.2em, 4vw, 2.5em);
+  }
+  .cg-step {
+    flex: 1 1 clamp(120px, 22vw, 200px);
+    padding: clamp(12px, 2vw, 18px) clamp(8px, 1.5vw, 12px);
+    border-radius: 14px;
+    border: 1px solid currentColor;
+    opacity: 0.55;
+  }
+  .cg-feats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(8px, 1.5vw, 12px);
+    justify-content: center;
+    text-align: left;
+    margin-bottom: clamp(1em, 3vw, 2em);
+  }
+  .cg-feat {
+    flex: 1 1 clamp(120px, 20vw, 170px);
+    min-width: 100px;
+    padding: clamp(8px, 1.2vw, 12px) clamp(10px, 1.5vw, 14px);
+    border-radius: 10px;
+    border: 1px solid currentColor;
+    opacity: 0.45;
+    font-size: clamp(0.75em, 1.8vw, 0.85em);
+  }
+</style>
+
+<div class="cg-wrapper">
+
+  <h1 class="cg-title">
+    <span class="gradient-text">Cloud Glyph</span>
+  </h1>
+  <p class="cg-subtitle">
+    AI-powered Markdown Wiki · Desktop + Browser
+  </p>
+
+  <hr class="gradient-rule" />
+
+  <!-- Three-step workflow -->
+  <div class="cg-steps">
+    <div class="step-card cg-step" style="animation-delay: 0s;">
+      <div class="step-icon" style="font-size: clamp(1.4em, 4vw, 2em); margin-bottom: 6px;">✍️</div>
+      <div style="font-weight: 600; font-size: clamp(0.8em, 2vw, 0.95em);">Write</div>
+      <div style="font-size: clamp(0.65em, 1.6vw, 0.78em); opacity: 0.7; margin-top: 4px;"><code>content/{lang}/**/index.md</code></div>
+    </div>
+    <div class="step-card cg-step" style="animation-delay: 0.12s;">
+      <div class="step-icon-delayed" style="font-size: clamp(1.4em, 4vw, 2em); margin-bottom: 6px;">⚙️</div>
+      <div style="font-weight: 600; font-size: clamp(0.8em, 2vw, 0.95em);">Build</div>
+      <div style="font-size: clamp(0.65em, 1.6vw, 0.78em); opacity: 0.7; margin-top: 4px;">Auto-index → JSON</div>
+    </div>
+    <div class="step-card cg-step" style="animation-delay: 0.24s;">
+      <div class="step-icon-slow" style="font-size: clamp(1.4em, 4vw, 2em); margin-bottom: 6px;">🚀</div>
+      <div style="font-weight: 600; font-size: clamp(0.8em, 2vw, 0.95em);">Browse</div>
+      <div style="font-size: clamp(0.65em, 1.6vw, 0.78em); opacity: 0.7; margin-top: 4px;">Desktop + Browser</div>
+    </div>
+  </div>
+
+  <!-- Feature grid -->
+  <div class="cg-feats">
+    <div class="feat-card cg-feat" style="animation-delay: 0s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">📝</span> Markdown<br><span style="opacity: 0.6;">Footnotes · Tables · Task lists</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.05s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🧮</span> KaTeX<br><span style="opacity: 0.6;">Inline $ $ · Display $$ $$</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.1s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🔍</span> Code Highlighting<br><span style="opacity: 0.6;">highlight.js · VS Code theme</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.15s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">📊</span> Mermaid<br><span style="opacity: 0.6;">Flow · Sequence · Class · Git</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.2s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🌿</span> PlantUML<br><span style="opacity: 0.6;">Auto dark/light SVG</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.25s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🎬</span> Video Embed<br><span style="opacity: 0.6;">Bilibili · YouTube · Vimeo</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.3s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🌐</span> Multi-language<br><span style="opacity: 0.6;">Independent directories per language</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.35s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🎨</span> Theme Editor<br><span style="opacity: 0.6;">RGB sliders · Live preview</span>
+    </div>
+  </div>
+
+  <p style="opacity: 0.4; font-size: 0.85em; margin-top: 1em;">
+    <span class="glow-dot" style="background: #4a9eff; animation-delay: 0s;"></span>
+    Agent-friendly
+    <span class="glow-dot" style="background: #a78bfa; animation-delay: 0.3s;"></span>
+    No DB required
+    <span class="glow-dot" style="background: #f472b6; animation-delay: 0.6s;"></span>
+    Open Source · MIT
+  </p>
 </div>
+
 ```
-
-Forbidden: `overflow: scroll`, `max-height`, extra `<div>` wrappers, modifying `cg-wrapper`'s `text-align`/`padding`/`width`.
-
-## Writing Steps
-
-### Step A: Collect Information
-
-| Source | Content to Extract |
-|---|---|
-| Tech stack analysis | Project name, tech stack, core module list (3-8 items) |
-| Quick start | Main use-case flow |
-| APIs | Core public API categories |
-
-### Step B: Build a 3-Step Workflow
-
-Design user stories based on project type:
-
-| Project Type | Step 1 | Step 2 | Step 3 |
-|---|---|---|---|
-| Class Library | Install | Initialize | Use |
-| Web API | Configure | Send Request | Handle Response |
-| CLI Tool | Install | Run Command | Parse Output |
-| Framework | Create Project | Add Components | Build & Deploy |
-
-### Step C: Build Feature Grid
-
-```html
-<div class="feat-card cg-feat">
-  <span class="feat-icon">⚡</span> High Performance<br>
-  <span style="opacity: 0.6;">Supports 100K requests/sec</span>
-</div>
-```
-
-Maximum 8 cards, each corresponding to a verified module.
-
-### Step D: Footer Badges
-
-```html
-<span class="glow-dot" style="background: #4CAF50;"></span>
-MIT License
-<span class="glow-dot" style="background: #2196F3;"></span>
-Cross-platform
-```
-
-## Animation Delay Table
-
-|---|---|---|
-| 1st card | `0s` | `style="animation-delay: 0s;"` |
-| 2nd card | `0.05-0.12s` | `style="animation-delay: 0.05s;"` |
-| 3rd card | `0.10-0.24s` | `style="animation-delay: 0.10s;"` |
-| 4th card | `0.15-0.30s` | `style="animation-delay: 0.15s;"` |
-| ... increment by +0.05s each | | |
-
-## Validation Checklist
-
-Before writing the welcome page, verify the source material:
-
-- [ ] Project name is from an actual build/config file (not guessed)
-- [ ] Tagline is descriptive of actual project capabilities
-- [ ] Each step card maps to a real user workflow (from demos/tests)
-- [ ] Each feature card corresponds to a verified module or capability
-- [ ] No feature is listed that lacks evidence from Steps 2-6
-- [ ] Emoji choices are thematically appropriate for the capability
-- [ ] Footer badges reflect real project attributes
-- [ ] Gradient colors match project brand (or defaults used)
-
-## Post-Write Action
-
-After writing/updating the Welcome page (and any other content page):
-
-- [ ] **Regenerate navigation index** — Run the tree.json generator script (e.g. `python gen_tree.py`) to update the navigation tree
-- [ ] **Verify tree output** — Confirm the regenerated tree.json includes all new pages and the Welcome page is the first root entry
-- [ ] **Build the project** — Run a build (`dotnet build`) to verify all assets are embedded correctly and the application compiles
-
-## Output Location (relative to `WIKI_ROOT`)
-
-- English: `content/en/0_Welcome/index.md` — always produced
-- Additional languages: `content/{lang}/0_Welcome/index.md` — only for languages selected in Step 1 (Language Selection). Default is English only.
-
-All language variants share the same CSS and HTML structure; only the natural language text differs. Skip any language not in the active language list.

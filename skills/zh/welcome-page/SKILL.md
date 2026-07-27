@@ -2,107 +2,237 @@
 
 ## 职责
 
-替换默认的 `0_Welcome/index.md` 为带有 CSS 动画和卡片布局的美观 HTML 着陆页。
+从模板创建符合当前项目的欢迎页
 
-## 前置要求
+## 约束
 
-此步骤在**所有内容页面（快速入门、API、软件工程分析、版权）编写完成后、审核步骤之前**执行。欢迎页需要引用其他页面的信息（项目名、模块名、功能描述），因此不能更早执行。但它必须与所有其他内容一起接受审核。
+⚠ 不允许修改既定布局，例如擅自修改页面大小或者擅自添加ScrollViewer等
 
-> **工作流位置：** 步骤 5-8（内容编写）→ 步骤 9（编写欢迎页）→ 步骤 10（审核）。Agent 应在所有内容存在后、审核之前立即编写欢迎页。
+✔ 允许修改配色、动画效果
 
-## 核心规则
-
-### 禁止编造
-
-欢迎页中的一切内容必须来自实际分析结果。项目名、模块名、功能描述、图标选择、链接都必须能在之前步骤中找到依据。
-
-### 外层容器固定
-
-```html
-<div class="cg-wrapper">    ← 此容器不可修改
-  <!-- 内部内容可自定义 -->
-</div>
-```
-
-禁止：`overflow: scroll`、`max-height`、额外 `<div>` 包裹、修改 `cg-wrapper` 的 `text-align`/`padding`/`width`。
-
-## 编写步骤
-
-### Step A: 收集信息
-
-| 来源 | 提取内容 |
-|---|---|
-| 技术栈分析 | 项目名、技术栈、核心模块列表（3-8 个） |
-| 快速开始 | 主要用例流程 |
-| APIs | 核心公开 API 分类 |
-
-### Step B: 构建 3 步工作流
-
-根据项目类型设计用户故事：
-
-| 项目类型 | 步骤 1 | 步骤 2 | 步骤 3 |
-|---|---|---|---|
-| 类库 | 安装 | 初始化 | 使用 |
-| Web API | 配置 | 发送请求 | 处理响应 |
-| CLI 工具 | 安装 | 运行命令 | 解析输出 |
-| 框架 | 创建项目 | 添加组件 | 构建部署 |
-
-### Step C: 构建功能网格
-
-```html
-<div class="feat-card cg-feat">
-  <span class="feat-icon">⚡</span> 高性能<br>
-  <span style="opacity: 0.6;">支持每秒 10 万请求</span>
-</div>
-```
-
-最多 8 个卡片，每张对应一个经过验证的模块。
-
-### Step D: 底部徽章
-
-```html
-<span class="glow-dot" style="background: #4CAF50;"></span>
-MIT License
-<span class="glow-dot" style="background: #2196F3;"></span>
-跨平台
-```
+✔ 允许修改文本内容、功能条目
 
 ## 输出位置
 
+Wiki_Root/content/{language}/0_欢迎/index.md
 
-|---|---|---|
-| 1st card | `0s` | `style="animation-delay: 0s;"` |
-| 2nd card | `0.05-0.12s` | `style="animation-delay: 0.05s;"` |
-| 3rd card | `0.10-0.24s` | `style="animation-delay: 0.10s;"` |
-| 4th card | `0.15-0.30s` | `style="animation-delay: 0.15s;"` |
-| ... increment by +0.05s each | | |
+## 模板
 
----
+```html
 
-## 验证清单
+<style>
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-9px); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes pop-in {
+    0% { opacity: 0; transform: scale(0.85); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-color, #4a9eff) 0%, transparent); }
+    50% { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--accent-color, #4a9eff) 25%, transparent); }
+  }
 
-编写欢迎页之前，确认源材料：
+  .cg-wrapper * {
+    will-change: transform, opacity;
+  }
 
-- [ ] 项目名来自实际的构建/配置文件（非猜测）
-- [ ] 标语准确描述项目实际能力
-- [ ] 每个步骤卡片映射到真实用户工作流（来自演示/测试）
-- [ ] 每个功能卡片对应已验证的模块或能力
-- [ ] 无缺乏步骤 2-6 证据的功能列出
-- [ ] Emoji 选择在主题上适合该能力
-- [ ] 底部徽章反映真实项目属性
-- [ ] 渐变颜色匹配项目品牌（或使用默认值）
+  .step-card {
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.35s ease;
+    animation: pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .step-card:hover {
+    transform: translateY(-5px) scale(1.04);
+    opacity: 0.8 !important;
+    box-shadow: 0 0 18px 2px color-mix(in srgb, var(--accent-color, #4a9eff) 25%, transparent);
+  }
 
-## 写入后操作
+  .step-icon {
+    display: inline-block;
+    animation: float 3.5s ease-in-out infinite;
+  }
+  .step-icon-delayed {
+    display: inline-block;
+    animation: float 3.5s ease-in-out 0.6s infinite;
+  }
+  .step-icon-slow {
+    display: inline-block;
+    animation: float 3.5s ease-in-out 1.2s infinite;
+  }
 
-编写/更新欢迎页（以及任何其他内容页面）后：
+  .feat-card {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+    animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .feat-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    opacity: 0.7 !important;
+    border-color: var(--accent-color, #4a9eff) !important;
+    box-shadow: 0 0 14px 1px color-mix(in srgb, var(--accent-color, #4a9eff) 20%, transparent);
+  }
 
-- [ ] **重新生成导航索引** — 运行 tree.json 生成脚本（如 `python gen_tree.py`）更新导航树
-- [ ] **验证 tree 输出** — 确认生成的 tree.json 包含所有新页面且欢迎页是第一个根条目
-- [ ] **构建项目** — 运行 `dotnet build` 验证所有资源已正确嵌入且应用编译通过
+  .feat-icon {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .feat-card:hover .feat-icon {
+    transform: scale(1.4) rotate(6deg);
+  }
 
-## 输出位置（相对于 `WIKI_ROOT`）
+  .gradient-text {
+    background: linear-gradient(135deg, #4a9eff, #a78bfa, #f472b6, #4a9eff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
 
-- English: `content/en/0_Welcome/index.md` — 始终生成
-- 其他语言：`content/{lang}/0_Welcome/index.md` — 仅针对步骤 1（语言选择）中选定的语言。默认为仅 English。
+  .glow-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin: 0 4px;
+    vertical-align: middle;
+    animation: glow-pulse 1.8s ease-in-out infinite;
+  }
+  .gradient-rule {
+    width: clamp(36px, 8vw, 60px);
+    margin: 0 auto clamp(1em, 3vw, 2.2em);
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-color, #4a9eff), #a78bfa, #f472b6);
+    border-radius: 2px;
+    opacity: 0.5;
+  }
+  .cg-wrapper {
+    text-align: center;
+    padding: clamp(24px, 5vw, 50px) clamp(12px, 3vw, 28px);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .cg-title {
+    font-size: clamp(1.6em, 6vw, 2.8em);
+    margin-bottom: 0.1em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .cg-subtitle {
+    font-size: clamp(0.9em, 2.5vw, 1.15em);
+    opacity: 0.55;
+    margin-bottom: clamp(0.8em, 3vw, 2em);
+  }
+  .cg-steps {
+    display: flex;
+    gap: clamp(10px, 2vw, 20px);
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: clamp(1.2em, 4vw, 2.5em);
+  }
+  .cg-step {
+    flex: 1 1 clamp(120px, 22vw, 200px);
+    padding: clamp(12px, 2vw, 18px) clamp(8px, 1.5vw, 12px);
+    border-radius: 14px;
+    border: 1px solid currentColor;
+    opacity: 0.55;
+  }
+  .cg-feats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(8px, 1.5vw, 12px);
+    justify-content: center;
+    text-align: left;
+    margin-bottom: clamp(1em, 3vw, 2em);
+  }
+  .cg-feat {
+    flex: 1 1 clamp(120px, 20vw, 170px);
+    min-width: 100px;
+    padding: clamp(8px, 1.2vw, 12px) clamp(10px, 1.5vw, 14px);
+    border-radius: 10px;
+    border: 1px solid currentColor;
+    opacity: 0.45;
+    font-size: clamp(0.75em, 1.8vw, 0.85em);
+  }
+</style>
 
-所有语言变体共享相同的 CSS 和 HTML 结构；仅自然语言文本不同。跳过不在活跃语言列表中的任何语言。
+<div class="cg-wrapper">
+
+  <h1 class="cg-title">
+    <span class="gradient-text">Cloud Glyph</span>
+  </h1>
+  <p class="cg-subtitle">
+    AI 驱动的 Markdown Wiki · 桌面 + 浏览器
+  </p>
+
+  <hr class="gradient-rule" />
+
+  <!-- 三步工作流 -->
+  <div class="cg-steps">
+    <div class="step-card cg-step" style="animation-delay: 0s;">
+      <div class="step-icon" style="font-size: clamp(1.4em, 4vw, 2em); margin-bottom: 6px;">✍️</div>
+      <div style="font-weight: 600; font-size: clamp(0.8em, 2vw, 0.95em);">编写</div>
+      <div style="font-size: clamp(0.65em, 1.6vw, 0.78em); opacity: 0.7; margin-top: 4px;"><code>content/{lang}/**/index.md</code></div>
+    </div>
+    <div class="step-card cg-step" style="animation-delay: 0.12s;">
+      <div class="step-icon-delayed" style="font-size: clamp(1.4em, 4vw, 2em); margin-bottom: 6px;">⚙️</div>
+      <div style="font-weight: 600; font-size: clamp(0.8em, 2vw, 0.95em);">构建</div>
+      <div style="font-size: clamp(0.65em, 1.6vw, 0.78em); opacity: 0.7; margin-top: 4px;">自动索引 → JSON</div>
+    </div>
+    <div class="step-card cg-step" style="animation-delay: 0.24s;">
+      <div class="step-icon-slow" style="font-size: clamp(1.4em, 4vw, 2em); margin-bottom: 6px;">🚀</div>
+      <div style="font-weight: 600; font-size: clamp(0.8em, 2vw, 0.95em);">浏览</div>
+      <div style="font-size: clamp(0.65em, 1.6vw, 0.78em); opacity: 0.7; margin-top: 4px;">桌面 + 浏览器</div>
+    </div>
+  </div>
+
+  <!-- 功能弹性布局 -->
+  <div class="cg-feats">
+    <div class="feat-card cg-feat" style="animation-delay: 0s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">📝</span> Markdown<br><span style="opacity: 0.6;">脚注 · 表格 · 任务列表</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.05s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🧮</span> KaTeX 公式<br><span style="opacity: 0.6;">行内 $ $ · 独立 $$ $$</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.1s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🔍</span> 代码高亮<br><span style="opacity: 0.6;">highlight.js · VS Code 配色</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.15s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">📊</span> Mermaid 图表<br><span style="opacity: 0.6;">流程图 · 时序 · 类图 · Git</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.2s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🌿</span> PlantUML<br><span style="opacity: 0.6;">自动深色/浅色 SVG</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.25s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🎬</span> 视频嵌入<br><span style="opacity: 0.6;">B站 · YouTube · Vimeo</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.3s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🌐</span> 多语言<br><span style="opacity: 0.6;">每种语言独立目录</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.35s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🎨</span> 主题编辑器<br><span style="opacity: 0.6;">RGB 滑块 · 实时预览</span>
+    </div>
+  </div>
+
+  <p style="opacity: 0.4; font-size: 0.85em; margin-top: 1em;">
+    <span class="glow-dot" style="background: #4a9eff; animation-delay: 0s;"></span>
+    Agent 友好
+    <span class="glow-dot" style="background: #a78bfa; animation-delay: 0.3s;"></span>
+    无需数据库
+    <span class="glow-dot" style="background: #f472b6; animation-delay: 0.6s;"></span>
+    开源 · MIT
+  </p>
+</div>
+
+```

@@ -2,13 +2,13 @@
 
 ## Responsibility
 
-Analyze the solution structure to systematically discover all functional modules and their responsibility boundaries. This skill provides the module inventory for subsequent Quick Start, API documentation, and software engineering analysis.
+Discover all functional modules and their responsibility boundaries, providing the inventory for subsequent Quick Start, API documentation, and software engineering analysis
 
 ## Workflow
 
 ### 1. Scan Project Structure
 
-List all projects/directories under Solution_Root and read each project's definition file:
+List all projects/directories under [Project_Root] and read each project's definition file:
 
 ```
 # .NET example

@@ -1,7 +1,7 @@
 [#group] 内容编写
 
 [#description]
-API documentation — extracting API docs from code analysis
+API Reference — Full enumeration of interfaces, types, and functions
 
 [#hook]
 - "Extract API from test code"

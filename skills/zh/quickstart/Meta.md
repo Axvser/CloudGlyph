@@ -1,7 +1,7 @@
 [#group] 内容编写
 
 [#description]
-快速开始 — 模块级 Quick Start 文档编写
+快速开始 — 完整的可运行上手教程
 
 [#hook]
 - "编写快速入门教程"

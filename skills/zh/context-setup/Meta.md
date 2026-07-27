@@ -1,10 +1,11 @@
 [#group] 基础设置
 
 [#description]
-变量确认 — 确定 WIKI_ROOT、Solution_Root、Project_List、Language_List 等上下文变量
+确认上下文
 
 [#hook]
-- "初始化工作上下文"
-- "确定 Wiki 根目录"
-- "确认解决方案与项目列表"
-- "确认语言支持范围"
+- "变量约定"
+- "技术栈"
+- "用户SKILL"
+- "目标语言支持"
+- "项目根目录"

@@ -1,11 +1,11 @@
 [#group] 质量保障
 
 [#description]
-Review — Wiki content review and quality check
+Wiki content review and improvement
 
 [#hook]
-- "Review documentation quality"
-- "Check link validity"
-- "Audit Wiki content"
-- "Verify document structure"
-- "Ensure rendering compatibility"
+- "Review"
+- "Quality"
+- "Authenticity"
+- "Directory structure"
+- "Compatibility"
