@@ -16,4 +16,6 @@ Confirm all necessary context
 
 5. Optionally accept a SKILL path from the user; if provided, load the corresponding SKILL
 
-6. Present a summary table to the user; proceed with the workflow after user confirmation
+6.**Scan existing Wiki_Root content** — Examine the current file structure under Wiki_Root for each target language, record the existing page tree, identify which dimensions already have content and which are empty. Pass this information to subsequent writing phases to avoid duplication or overwriting.
+
+7. Present a summary table to the user; proceed with the workflow after user confirmation

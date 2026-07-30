@@ -19,9 +19,21 @@ The Architecture section is organized into the following pages. Each page after 
 |---|---|---|---|
 | `0_file_structure/index.md` | Repository layout, directory tree, project-to-folder mapping | Mermaid flowchart + tree | Single overview page |
 | `1_functional_structure/index.md` | Module responsibility boundaries, feature-to-project mapping, entry point identification | Mermaid flowchart + tables | Single overview page |
-| `2_design_patterns/index.md` | **Design pattern analysis** — one sub-page per feature/module | Mermaid classDiagram + tables | `2_design_patterns/{Feature}/index.md` — one sub-page per feature |
-| `3_data_flow/index.md` | **Data flow analysis** — sequence diagrams for each feature's API call chain | **PlantUML** sequence diagrams | `3_data_flow/{Feature}/index.md` — one sub-page per feature |
-| `4_complexity/index.md` | **Complexity analysis** — time/space complexity for each feature's core operations | KaTeX + tables | `4_complexity/{Feature}/index.md` — one sub-page per feature |
+| `2_design_patterns/index.md` | **Design pattern analysis** — one sub-page per feature/module | Mermaid classDiagram + tables | `2_design_patterns/{Feature}/index.md`, may be further subdivided for complex features |
+| `3_data_flow/index.md` | **Data flow analysis** — sequence diagrams for each feature's API call chain | **PlantUML** sequence diagrams | `3_data_flow/{Feature}/index.md`, may be further subdivided for complex features |
+| `4_complexity/index.md` | **Complexity analysis** — time/space complexity for each feature's core operations | KaTeX + tables | `4_complexity/{Feature}/index.md`, may be further subdivided for complex features |
+
+### Sub-page Depth Rules
+
+Under each `{Feature}/` directory, **further nesting is allowed and encouraged** when necessary to keep each page focused and readable.
+
+**Recommended subdivision dimensions:**
+- `2_design_patterns/{Feature}/` can split by: `0_{PatternName}/index.md` (e.g., `0_Singleton/index.md`, `1_Factory/index.md`)
+- `3_data_flow/{Feature}/` can split by: `0_{APIEndpoint}/index.md` or `0_{OperationName}/index.md` (e.g., `0_UserRegistration/index.md`, `1_OrderQuery/index.md`)
+- `4_complexity/{Feature}/` can split by: `0_{CoreOperation}/index.md` (e.g., `0_Search/index.md`, `1_Sort/index.md`)
+
+> Guiding principle: when a single page exceeds **500 lines** or covers **more than 3 distinct topics**, it should be split into sub-pages.
+> The parent directory's `index.md` serves as the feature overview/table of contents, linking to each sub-page.
 
 ### Page Detail
 
