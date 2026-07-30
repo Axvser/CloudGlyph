@@ -81,14 +81,19 @@ def main():
         print(f"[claude_install] ERROR: Directory not found: {raw_dir}", file=sys.stderr)
         sys.exit(1)
 
-    # Normalize: ensure we install under .claude/skills/cloud-glyph/
-    basename = os.path.basename(raw_dir)
-    if basename == ".claude":
-        # User passed the .claude dir directly
-        claude_root = raw_dir
+    # Normalize: determine claude_root based on the input path
+    raw_normalized = os.path.normpath(raw_dir)
+    # Split path components to detect known suffixes
+    parts = raw_normalized.split(os.sep)
+    if len(parts) >= 2 and parts[-2] == ".claude" and parts[-1] == "skills":
+        # e.g. /home/user/.claude/skills — install into .claude/
+        claude_root = os.path.dirname(raw_normalized)
+    elif parts[-1] == ".claude":
+        # e.g. /home/user/.claude — use directly
+        claude_root = raw_normalized
     else:
-        # User passed the project root — create .claude under it
-        claude_root = os.path.join(raw_dir, ".claude")
+        # e.g. /home/user/project — create .claude/ under it
+        claude_root = os.path.join(raw_normalized, ".claude")
 
     print(f"[claude_install] Target root: {claude_root}")
     print(f"[claude_install] Language: {args.lang}")
