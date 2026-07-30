@@ -1,7 +1,4 @@
-[#group] 内容编写
+[#pipeline] 6
 
 [#description]
-编写版权相关信息
-
-[#hook]
-- "编写【版权】"
+编写【版权】

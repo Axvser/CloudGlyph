@@ -1,4 +1,7 @@
-﻿# Cloud Glyph Skills
+﻿---
+name: cloud-glyph-wiki-create
+description: Analyze project source code and produce beautiful, well-structured Wiki documentation
+---
 
 ## Responsibility
 
@@ -54,26 +57,4 @@ Ultimately, the directory will present the following structure. These are five f
 
 ## Workflow
 
-> 0.Begin
-
-> 1.Variable Confirmation
-
-> 2.Module Discovery
-
-> 3.Write【QuickStart】
-
-> 4.Write【API Reference】
-
-> 5.Write【SE Analysis】
-
-> 6.Write【Copyright】
-
-> 7.Write【Welcome】
-
-> 8.Review
-
-> 9.End
-
-## Skill Index
-
-<!-- SKILL_INDEX -->
+<!-- WORKFLOW -->

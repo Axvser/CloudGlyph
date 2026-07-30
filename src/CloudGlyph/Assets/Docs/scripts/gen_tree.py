@@ -29,20 +29,31 @@ def _title(name: str) -> str:
     return m.group(1) if m else name
 
 
+def _ensure_index_md(dir_path: str) -> None:
+    """Create a blank index.md if missing. This ensures the directory
+    appears in the navigation tree even when content hasn't been written yet.
+    """
+    index_path = os.path.join(dir_path, "index.md")
+    if not os.path.isfile(index_path):
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write("")
+        print(f"[gen_tree] Created blank: {index_path}")
+
+
 def _scan(dir_path: str, lang_root: str) -> list[dict]:
     """Scan *dir_path* for subdirectories that contain index.md and return
     them as a list of ``{title, path, children}`` dicts.
 
     Sorting is natural (OS order) — use numeric prefixes to control sequence.
     *lang_root* is the language root — paths are computed relative to it.
+    Missing index.md files are auto-created as blank.
     """
     nodes: list[dict] = []
     for entry in sorted(os.listdir(dir_path)):
         child_path = os.path.join(dir_path, entry)
         if not os.path.isdir(child_path):
             continue
-        if not os.path.isfile(os.path.join(child_path, "index.md")):
-            continue
+        _ensure_index_md(child_path)
 
         rel_path = os.path.relpath(child_path, lang_root).replace("\\", "/")
         children = _scan(child_path, lang_root)
@@ -68,8 +79,7 @@ def main():
             child_path = os.path.join(lang_dir, entry)
             if not os.path.isdir(child_path):
                 continue
-            if not os.path.isfile(os.path.join(child_path, "index.md")):
-                continue
+            _ensure_index_md(child_path)
 
             children = _scan(child_path, lang_dir)
             pages.append({

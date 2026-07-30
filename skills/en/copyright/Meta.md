@@ -1,7 +1,4 @@
-[#group] 内容编写
+[#pipeline] 6
 
 [#description]
-Write copyright-related information
-
-[#hook]
-- "Write【Copyright】"
+Write【Copyright】

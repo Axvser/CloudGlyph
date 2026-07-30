@@ -1,7 +1,4 @@
-[#group] 内容编写
+[#pipeline] 7
 
 [#description]
-Create welcome page from template
-
-[#hook]
-- "Write【Welcome】"
+Write【Welcome】

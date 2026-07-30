@@ -1,11 +1,4 @@
-[#group] 质量保障
+[#pipeline] 8
 
 [#description]
-Wiki content review and improvement
-
-[#hook]
-- "Review"
-- "Quality"
-- "Authenticity"
-- "Directory structure"
-- "Compatibility"
+Review
