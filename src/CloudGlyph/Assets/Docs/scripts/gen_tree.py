@@ -10,6 +10,7 @@ are stripped in the displayed title but preserved in the path for file loading.
 import json
 import os
 import re
+import sys
 
 # __file__ is under scripts/, so content/ is two levels up: ../../
 CONTENT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "content"))
@@ -67,6 +68,14 @@ def _scan(dir_path: str, lang_root: str) -> list[dict]:
 
 
 def main():
+    # Cross-platform: force UTF-8 on stdout/stderr so Chinese paths survive
+    # Windows pipe redirection (MSBuild ConsoleToMSBuild, CI, etc.).
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
     for lang in sorted(os.listdir(CONTENT_DIR)):
         lang_dir = os.path.join(CONTENT_DIR, lang)
         if not os.path.isdir(lang_dir):
@@ -90,7 +99,8 @@ def main():
 
         tree = {"Pages": pages}
         tree_path = os.path.join(lang_dir, "tree.json")
-        with open(tree_path, "w", encoding="utf-8") as f:
+        # newline="\n" keeps tree.json byte-identical across platforms.
+        with open(tree_path, "w", encoding="utf-8", newline="\n") as f:
             json.dump(tree, f, ensure_ascii=False, indent=2)
         n = len(pages)
         print(f"[gen_tree] Updated: {tree_path} ({n} root pages)")

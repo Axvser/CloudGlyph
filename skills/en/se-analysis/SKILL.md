@@ -81,9 +81,9 @@ Repo --> Svc: User?
 deactivate Repo
 
 alt User exists
-	Svc --> Ctrl: 200 OK + User
+    Svc --> Ctrl: 200 OK + User
 else User not found
-	Svc --> Ctrl: 404 Not Found
+    Svc --> Ctrl: 404 Not Found
 end
 
 Ctrl --> User: JSON response
@@ -109,31 +109,31 @@ activate Auth
 
 Auth -> Auth: Validate JWT Token
 alt Invalid token
-	Auth --> Client: 401 Unauthorized
-	deactivate Auth
-	note right: Pipeline short-circuits
+    Auth --> Client: 401 Unauthorized
+    deactivate Auth
+    note right: Pipeline short-circuits
 else Valid token
-	Auth -> Log: Forward request
-	deactivate Auth
-	activate Log
+    Auth -> Log: Forward request
+    deactivate Auth
+    activate Log
 
-	Log -> Log: Log request
-	Log -> Ctrl: Invoke Action
-	activate Ctrl
+    Log -> Log: Log request
+    Log -> Ctrl: Invoke Action
+    activate Ctrl
 
-	Ctrl -> Svc: Execute business logic
-	activate Svc
-	Svc -> Db: Query/Write
-	activate Db
-	Db --> Svc: Result
-	deactivate Db
-	Svc --> Ctrl: Business result
-	deactivate Svc
+    Ctrl -> Svc: Execute business logic
+    activate Svc
+    Svc -> Db: Query/Write
+    activate Db
+    Db --> Svc: Result
+    deactivate Db
+    Svc --> Ctrl: Business result
+    deactivate Svc
 
-	Ctrl --> Log: ActionResult
-	deactivate Ctrl
-	Log --> Client: HTTP Response
-	deactivate Log
+    Ctrl --> Log: ActionResult
+    deactivate Ctrl
+    Log --> Client: HTTP Response
+    deactivate Log
 end
 @enduml
 ```
@@ -190,23 +190,23 @@ deactivate Handler
 
 ```mermaid
 classDiagram
-	class IUserService {
-		<<interface>>
-		+GetUserAsync(int id) Task~User?~
-		+CreateUserAsync(User user) Task~User~
-	}
-	class UserService {
-		-IUserRepository _repo
-		-ILogger _logger
-		+GetUserAsync(int id) Task~User?~
-		+CreateUserAsync(User user) Task~User~
-	}
-	class UserController {
-		+GetUser(int id) IActionResult
-		+CreateUser(CreateUserRequest req) IActionResult
-	}
-	IUserService <|.. UserService
-	UserController --> IUserService
+    class IUserService {
+        <<interface>>
+        +GetUserAsync(int id) Task~User?~
+        +CreateUserAsync(User user) Task~User~
+    }
+    class UserService {
+        -IUserRepository _repo
+        -ILogger _logger
+        +GetUserAsync(int id) Task~User?~
+        +CreateUserAsync(User user) Task~User~
+    }
+    class UserController {
+        +GetUser(int id) IActionResult
+        +CreateUser(CreateUserRequest req) IActionResult
+    }
+    IUserService <|.. UserService
+    UserController --> IUserService
 ```
 
 > Source: `src/MyApp.Web/Services/UserService.cs` lines 15-45
@@ -215,15 +215,15 @@ classDiagram
 
 ```mermaid
 flowchart TD
-	A[Receive HTTP Request] --> B{Auth Passed?}
-	B -->|No| C[Return 401]
-	B -->|Yes| D[Execute Middleware Pipeline]
-	D --> E{Route Matched?}
-	E -->|No| F[Return 404]
-	E -->|Yes| G[Invoke Controller]
-	G --> H[Execute Action]
-	H --> I[Serialize JSON]
-	I --> J[Return Response]
+    A[Receive HTTP Request] --> B{Auth Passed?}
+    B -->|No| C[Return 401]
+    B -->|Yes| D[Execute Middleware Pipeline]
+    D --> E{Route Matched?}
+    E -->|No| F[Return 404]
+    E -->|Yes| G[Invoke Controller]
+    G --> H[Execute Action]
+    H --> I[Serialize JSON]
+    I --> J[Return Response]
 ```
 
 ## Output Location
@@ -240,4 +240,4 @@ For **Framework/Monorepo** tier: `content/{lang}/{category}/architecture/{page_g
 After writing SE Analysis content:
 
 - [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
-- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly
+- [ ] **Build the project** — Run the project's build command to verify the new content embeds correctly

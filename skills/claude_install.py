@@ -38,6 +38,8 @@ def regenerate_skill(lang: str) -> None:
         [sys.executable, GEN_SCRIPT, "--lang", lang],
         capture_output=True,
         text=True,
+        encoding="utf-8",  # gen_skill.py emits UTF-8 on stdout (see its main())
+        errors="replace",  # never crash on undecodable bytes
         cwd=SKILLS_ROOT,
     )
     print(result.stdout, end="")
@@ -82,7 +84,7 @@ def main():
         sys.exit(1)
 
     # Normalize: determine claude_root based on the input path
-    raw_normalized = os.path.normpath(raw_dir)
+    raw_normalized = os.path.normpath(raw_dir).rstrip(os.sep + "/")
     # Split path components to detect known suffixes
     parts = raw_normalized.split(os.sep)
     if len(parts) >= 2 and parts[-2] == ".claude" and parts[-1] == "skills":

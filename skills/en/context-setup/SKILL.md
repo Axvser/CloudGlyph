@@ -12,7 +12,7 @@ Confirm all necessary context
 
 3. LanguageTargets_List must be provided by the user, and must be a subset of LanguageMap_List; if not, inform the user that LanguageMap_List needs to be edited to support the specified languages
 
-4. Discover the project's tech stack, such as .NET, C/C++, Python, JavaScript, etc.
+4. Identify the project's tech stack (programming languages, frameworks, build tools, package managers, etc.) without presuming any specific technology
 
 5. Optionally accept a SKILL path from the user; if provided, load the corresponding SKILL
 

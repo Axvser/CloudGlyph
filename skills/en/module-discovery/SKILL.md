@@ -1,80 +1,32 @@
-# Module Discovery
+# Feature Inventory Discovery
 
 ## Responsibility
 
-Discover all functional modules and their responsibility boundaries, providing the inventory for subsequent Quick Start, API documentation, and software engineering analysis
+Execute the discovery flow defined in 【TEMPLATE · Analysis Paradigm】 and produce the「Feature Inventory」as the unified input for Quick Start, API Reference, and SE Analysis
 
 ## Workflow
 
-### 1. Assess Project Type
+### 1. Follow the Analysis Paradigm
 
-First determine the nature of [Project_Root]:
-- **Small/Medium project** (clear directory layout, enumerable project files) → follow steps 2→3→4 in order
-- **Large framework/product/platform** (deep directories, many project files, directory structure alone doesn't reveal functional boundaries) → **use Demo/Tests as the driver**:
-  > Prioritize scanning Examples/, samples/, tests/ directories, inferring functional modules from actual usage patterns;
-  > Use namespaces, class names, and API calls found in test files and Demo code to deduce functional boundaries;
-  > Then cross-verify against the directory structure, rather than starting from it.
+Strictly follow the discovery order defined in the Analysis Paradigm, regardless of project size; never infer features from directory structure alone:
 
-### 2. Scan Project Structure
+1. **Entry-point understanding** — read README, entry files, build scripts, etc., to form a candidate feature list
+2. **Demo / Example first** — fully read all source files under Examples/, samples/, demo, etc., and extract feature and API evidence
+3. **Test-driven** — when a Demo is missing, fully read the corresponding test files and extract feature boundaries and typical usage
+4. **Source fallback** — only when the above are absent, infer from source and explicitly mark as *inferred*
 
-List all projects/directories under [Project_Root] and read each project's definition file:
+### 2. Record Ownership and Dependencies
 
-```
-# .NET example
-Solution: MyApp.slnx
-├── src/MyApp.Core/          ← Class library
-│   └── MyApp.Core.csproj
-├── src/MyApp.Web/           ← Web application
-│   └── MyApp.Web.csproj
-└── tests/MyApp.Tests/       ← Test project
-	└── MyApp.Tests.csproj
-```
+Read the dependency declarations from project definition files (build manifests, dependency manifests, etc.) and record each feature's owning project and dependencies; the exact file format and fields depend on the project's actual tech stack.
 
-> For large projects, this step is supplementary validation — the primary module list comes from Demo/Test analysis.
+### 3. Generate the Feature Inventory
 
-### 3. Identify Module Responsibilities
-
-For each project, read its internal directory structure and representative files:
-
-```
-# Read MyApp.Web's Controllers/ directory
-# Confirms this is an ASP.NET Core Web API module
-# Purpose: Provides RESTful API endpoints
-```
-
-**Critical: Also check for Demo/Example and Test projects related to each module.** These reveal the actual API surface and idiomatic usage patterns:
-
-```
-# Examples/MyApp.Web/ contains a working REST API demo
-# → Extract endpoint patterns, middleware setup, DI registration
-
-# tests/MyApp.Web.Tests/ has controller tests
-# → Extract request construction, status code assertions
-```
-
-> For large projects, Demo and Tests are the primary means of identifying functional modules — do not rely solely on directory names to infer functionality.
-
-### 4. Map Dependencies
-
-Read ProjectReference and PackageReference from `.csproj` / equivalent files:
-
-```xml
-<ItemGroup>
-  <ProjectReference Include="..\MyApp.Core\MyApp.Core.csproj" />
-  <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
-</ItemGroup>
-```
-
-### 5. Generate Module Responsibility Table
-
-| Module | Type | Responsibility | Dependencies |
-|---|---|---|---|
-| MyApp.Core | Class Library | Domain models, business logic | None |
-| MyApp.Web | Web Application | REST API, middleware | MyApp.Core, Serilog |
-| MyApp.Tests | Tests | Unit tests, integration tests | xUnit, MyApp.Core |
+| Feature | Owning Project | Public API Surface | Dependencies | Evidence |
+|---|---|---|---|---|
+| User registration | auth service | register(credentials) | database driver | Demo |
+| Data export | report module | export(format) | template engine | Test |
 
 ## Output
 
-- Complete module list (name, path, type) with nature annotation (directory-driven / Demo-Test-driven)
-- Confirmed responsibility for each module (based on file content or Demo/Test usage patterns, not guesswork)
-- Inter-project dependency graph
+- 「Feature Inventory」table (feature / owning project / public API surface / dependencies / evidence source)
+- This inventory is the single feature input for the subsequent Quick Start / API Reference / SE Analysis phases — they must not introduce a different feature breakdown

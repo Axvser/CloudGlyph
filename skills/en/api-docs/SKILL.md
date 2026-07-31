@@ -14,16 +14,9 @@ API Reference is not about depth or multiple styles — it's about **uncompromis
 - For each type, list all public members (methods, properties, events, fields)
 - Include full signature, parameter descriptions, return value descriptions, and exception declarations
 
-### API Discovery Priority
+### API Source
 
-> **Priority 1 — Demo/Example projects**
-> Scan `Examples/` directories for real-world usage of the API, **read all source files in full**. Demo projects reveal the intended public API surface.
->
-> **Priority 2 — Unit Tests**
-> **Read all test files in full**, extracting API signatures, typical input/output, and edge cases.
->
-> **Priority 3 (Fallback) — Source code interfaces**
-> Only when no Demo or Test exists: read the public API signatures directly from source files. These must be explicitly marked as *inferred*.
+Use the「Feature Inventory」produced by the 【Analysis Paradigm】 as the source of truth: for features with Demo / Test evidence, extract the API surface from those Demos/tests; for features marked *inferred*, compile signatures from source and mark them accordingly.
 
 ### Entry Template
 
@@ -47,9 +40,9 @@ Record each public member using the following structure:
 | `{ExceptionType}` | {condition} |
 
 **Example:**
-```csharp
+```text
 // Source: [Demo/Test/Inferred]
-var result = instance.Method(value);
+result = instance.method(value);
 ```
 
 **Notes:**
@@ -61,7 +54,7 @@ var result = instance.Method(value);
 Group by type, and within each type sort by member kind (properties first, then methods):
 
 ```markdown
-## {Namespace}
+## {Namespace/Package}
 
 ### Class: {ClassName}
 
@@ -85,9 +78,9 @@ Group by type, and within each type sort by member kind (properties first, then 
 ```
 content/{lang}/{category}/1_API_Reference/{Feature}/
 ├── index.md                    ← Overview
-├── 0_{NamespaceA}/
+├── 0_{Namespace/Package A}/
 │   └── index.md
-├── 1_{NamespaceB}/
+├── 1_{Namespace/Package B}/
 │   └── index.md
 └── ...
 ```
@@ -97,4 +90,4 @@ content/{lang}/{category}/1_API_Reference/{Feature}/
 After writing API documentation:
 
 - [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
-- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly
+- [ ] **Build the project** — Run the project's build command to verify the new content embeds correctly

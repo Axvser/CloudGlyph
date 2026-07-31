@@ -23,6 +23,25 @@ Strictly follow the workflow defined in this SKILL to produce Wiki documentation
 
 > LanguageTargets_List:[request] - Range of languages the user wants the Wiki to support
 
+## Analysis Paradigm
+
+⚙ **Wiki content is organized around「Features」, not the Project's directory structure.** The directory structure is an implementation detail that may evolve with architecture or team conventions — it must not be mapped directly onto the Wiki structure.
+
+⚙ Definition of a Feature: a cohesive set of capabilities a project exposes, usually corresponding to a usage scenario that can be independently described, used, and verified. A single feature may span multiple directories/projects, and a single directory may host several features — feature is the deciding unit, directories are only lookup hints.
+
+⚙ Feature/API discovery order and paths (priority from high to low):
+
+1. **Entry-point understanding** — read the project's README, entry files, build scripts, etc., to form a candidate feature list
+2. **Demo / Example first** — scan Examples/, samples/, demo, etc., and fully read all source files; Demos are the primary evidence source for features and APIs
+3. **Test-driven** — for a feature lacking Demo, fully read the corresponding test files and extract feature boundaries and typical usage from test cases
+4. **Source fallback** — only when the above are all absent, infer features from the source directory structure and interface signatures; such inferences MUST be explicitly marked as *inferred*
+
+⚙ The order above applies to all project sizes: single-project, multi-project, and large frameworks/monorepos alike; for large projects it is especially forbidden to guess features from directory names alone.
+
+⚙ Analysis artifact: a「Feature Inventory」listing per item: feature name / owning project / public API surface / evidence source (Demo / Test / inferred). It is the unified input for the subsequent Quick Start / API Reference / SE Analysis phases — the three phases work from the same inventory so every Wiki dimension stays consistent.
+
+⚙ Sub-items under the five fixed dimensions (see Structure Conventions) are always organized by feature.
+
 ## Structure Conventions
 
 ⚙ {ID}_{PageName}/ - Folder naming convention when producing Markdown. The tree structure formed by folders is the directory structure the final App renders for the Wiki.
@@ -43,11 +62,19 @@ Ultimately, the directory will present the following structure. These are five f
 
 > Wiki_Root/4_Copyright/.../
 
+## Template Conventions
+
+⚙ This SKILL ships with optional templates, collected in the “Template Index” table mapping `When | Template`.
+
+⚙ Choose the template whose When matches the current scenario; the template body is stored escaped and must be restored before use.
+
 ## Code Style Conventions
 
-⚙ Before writing code blocks in Wiki output, scan source files under 【Project_Root】 to detect the dominant indentation style (tabs vs spaces + width). Generated code blocks MUST match that style. When detection is ambiguous, default to **4 spaces** for .NET/C# projects.
+⚙ **Indentation in code blocks MUST use actual space characters — tab characters (Tab / \t) are forbidden.** "Indentation" means a definite number of spaces, e.g. 4 spaces; a tab's rendered width is unpredictable across environments and must never appear in Wiki code blocks.
 
-⚙ When extracting code snippets from source files (Demo / Test / source), preserve their original whitespace style — do not convert tabs to spaces or vice versa.
+⚙ Before writing code blocks in Wiki output, scan source files under 【Project_Root】 to detect the project's dominant indentation width (2 spaces, 4 spaces, etc.). Generated code blocks MUST match that width. When detection is ambiguous, default to **4 spaces**.
+
+⚙ When extracting code snippets from source files (Demo / Test / source), convert any tab characters to the detected space width (default 4 spaces) so every code block in the Wiki uses real space indentation.
 
 ## Accessibility Conventions
 

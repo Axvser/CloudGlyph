@@ -18,16 +18,9 @@ The goal of Quick Start is not minimal code snippets, but guiding the reader fro
 
 Use the module's highest-level API (attributes, extension methods, Fluent API, base classes) to show **what it looks like to use**, not **how it's implemented internally**. Low-level interface implementation and manual patterns belong in the API reference.
 
-### Source Discovery (Priority)
+### Material Source
 
-> **Priority 1 — Demo/Example projects**
-> Search the module's `Examples/` or `samples/` directory, **read all source files in full**. Demo projects are natural Quick Start material — extract their core flow and organize into a step-by-step tutorial.
->
-> **Priority 2 — Unit Tests**
-> If no Demo exists for a module, **read all test files in full**, extract typical usage flows and compose them into a coherent example.
->
-> **Priority 3 (Fallback) — Source code interfaces**
-> Only when both Demo and Tests are absent: understand the module's intent from source code and construct a reasonable example. Mark these as *inferred*.
+Use the「Feature Inventory」produced by the 【Analysis Paradigm】 directly: each feature's evidence source (Demo / Test / inferred) is already recorded. Prioritize by evidence — fully read all Demo source files first, then tests; examples for features marked *inferred* must be noted as such in the page. Do not redo feature discovery.
 
 ### Structure
 
@@ -38,7 +31,7 @@ Use the module's highest-level API (attributes, extension methods, Fluent API, b
 
 ### 1. Install / Add Dependency
 
-How to install NuGet package / npm package / module etc.
+How to install / add dependencies (using the package manager appropriate to the project's tech stack)
 
 ### 2. Basic Setup / Registration
 
@@ -74,4 +67,4 @@ content/{lang}/{category}/0_QuickStart/
 After writing Quick Start content:
 
 - [ ] **Regenerate navigation index** — Run the tree generator script (e.g. `python gen_tree.py`) to rebuild tree.json
-- [ ] **Build the project** — Run `dotnet build` to verify the new content embeds correctly
+- [ ] **Build the project** — Run the project's build command to verify the new content embeds correctly

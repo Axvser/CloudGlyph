@@ -12,7 +12,7 @@
 
 3.LanguageTargets_List必须由用户提供，且必须是LanguageMap_List的子集，若不是子集，告知用户需要编辑LanguageMap_List以支持用户指定的语言
 
-4.发现项目涉及的技术栈，如.NET、C/C++、Python、JavaScript等
+4.识别项目涉及的技术栈（编程语言、框架、构建工具、包管理器等），不预设任何特定技术
 
 5.可选接受用户提供的SKILL路径，若提供则加载对应SKILL
 

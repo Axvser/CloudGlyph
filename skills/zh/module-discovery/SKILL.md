@@ -1,80 +1,32 @@
-# 功能模块发现
+# 功能清单发现
 
 ## 职责
 
-发现所有功能模块及其职责边界，为后续编写 Quick Start、API 文档和软件工程分析提供清单
+执行【TEMPLATE·分析范式】定义的发现流程，产出「功能清单」，为后续编写 Quick Start、API 参考和 SE 分析提供统一输入
 
 ## 操作流程
 
-### 1. 判断项目类型
+### 1. 遵循分析范式
 
-首先判断[Project_Root]的性质：
-- **小型/中型项目**（有明确目录结构、项目文件可枚举）→ 按下方 2→3→4 顺序执行
-- **大型框架/产品/平台**（目录层级深、项目文件多、仅看目录无法理解功能边界）→ **以 Demo/测试为驱动**：
-  > 优先扫描 Examples/、samples/、tests/ 目录，从实际使用模式反推功能模块；
-  > 用测试文件和 Demo 代码中的命名空间、类名、API 调用来推断功能边界；
-  > 再回头与目录结构交叉验证，而非从目录结构出发。
+严格按【分析范式】规定的发现顺序执行，不区分项目规模，禁止仅凭目录结构推断功能：
 
-### 2. 扫描项目结构
+1. **入口理解** — 阅读 README、入口文件、构建脚本等，形成候选功能列表
+2. **Demo / Example 优先** — 完整阅读 Examples/、samples/、demo 等全部源文件，提取功能与 API 证据
+3. **测试驱动** — 缺少 Demo 时完整阅读对应测试文件，提取功能边界与典型用法
+4. **源码兜底** — 以上均缺失时从源码推断，并明确标注「推断所得」
 
-列出[Project_Root]下所有项目/目录，读取每个项目的定义文件：
+### 2. 补充归属与依赖
 
-```
-# .NET 示例
-Solution: MyApp.slnx
-├── src/MyApp.Core/          ← 类库
-│   └── MyApp.Core.csproj
-├── src/MyApp.Web/           ← Web 应用
-│   └── MyApp.Web.csproj
-└── tests/MyApp.Tests/       ← 测试项目
-    └── MyApp.Tests.csproj
-```
+读取项目定义文件（构建清单、依赖清单等）中的依赖声明，记录每个功能的归属工程与依赖；具体文件格式与字段以项目实际技术栈为准。
 
-> 注：大型项目此步仅作辅助验证，主要功能列表来源于 Demo/测试分析。
+### 3. 生成功能清单
 
-### 3. 识别模块职责
-
-对每个项目，读取其内部目录结构和代表性文件：
-
-```
-# 读取 MyApp.Web 的 Controllers/ 目录
-# 确认这是一个 ASP.NET Core Web API 模块
-# 功能：提供 RESTful API 端点
-```
-
-**关键：同时检查与该模块相关的 Demo/示例和测试项目。** 这些揭示了实际的 API 表面和惯用使用模式：
-
-```
-# Examples/MyApp.Web/ 包含可运行的 REST API Demo
-# → 提取端点模式、中间件配置、DI 注册
-
-# tests/MyApp.Web.Tests/ 包含控制器测试
-# → 提取请求构造、状态码断言
-```
-
-> 对于大型项目，Demo 和测试是识别功能模块的主要手段——不要仅依赖目录名推测功能。
-
-### 4. 梳理依赖关系
-
-读取 `.csproj` / 等效文件中的 ProjectReference 和 PackageReference：
-
-```xml
-<ItemGroup>
-  <ProjectReference Include="..\MyApp.Core\MyApp.Core.csproj" />
-  <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
-</ItemGroup>
-```
-
-### 5. 生成模块职责表
-
-| 模块 | 类型 | 职责 | 依赖 |
-|---|---|---|---|
-| MyApp.Core | 类库 | 领域模型、业务逻辑 | 无 |
-| MyApp.Web | Web 应用 | REST API、中间件 | MyApp.Core, Serilog |
-| MyApp.Tests | 测试 | 单元测试、集成测试 | xUnit, MyApp.Core |
+| 功能名 | 归属工程 | 对外 API 面 | 依赖 | 证据来源 |
+|---|---|---|---|---|
+| 用户注册 | 认证服务 | register(凭证) | 数据库驱动 | Demo |
+| 数据导出 | 报表模块 | export(格式) | 模板引擎 | Test |
 
 ## 输出
 
-- 完整的模块列表（名称、路径、类型）及性质标注（目录驱动 / Demo-测试驱动）
-- 每个模块的确认职责（基于文件内容或 Demo/测试使用模式，非猜测）
-- 项目间依赖图
+- 「功能清单」表（功能名 / 归属工程 / 对外 API 面 / 依赖 / 证据来源）
+- 该清单是后续【快速开始】【API 参考】【SE 分析】的唯一功能输入，三阶段不得另起一套功能划分
