@@ -93,6 +93,8 @@ Wiki_Root/2_API/00_{feature}/
 
 > Feature directory names must match the Feature Inventory and be identical across the `1_QuickStart`, `2_API`, and `3_SE_Analysis` trees.
 
+> When a namespace or feature API page would exceed ~300 lines, split further by type: `2_API/00_{feature}/00_{namespace}/00_{Type}/index.md` (or directly `2_API/00_{feature}/00_{Type}/index.md` when the feature has few namespaces).
+
 ## Post-Write Action
 
 After writing API documentation:

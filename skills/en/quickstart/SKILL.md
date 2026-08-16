@@ -26,10 +26,28 @@ Use the「Feature Inventory」produced by the 【Analysis Paradigm】 directly: 
 
 Every Quick Start is a **contract that a human can reproduce end-to-end**. On top of the structure below, obey:
 
-- **Prerequisites are mandatory** — exact SDK/runtime/package-manager versions, target framework, and any required services (with how to obtain/start them).
+- **Prerequisites are mandatory and derived from build metadata, not from Demos** — read the project's declared `TargetFrameworks` / `TargetFramework` and dependency minimums (csproj/project files, package manifests) to state the actual supported targets, SDK/runtime and package versions. A Demo or test only proves one *tested* configuration — it is never the minimum supported version. State required services with how to obtain/start them.
 - **Every numbered step states an observable "Expected result"** — what the reader sees/hears/verifies after completing it, not only at the end.
 - **Complete Code is a single minimal runnable block** — no `...` / ellipses; symbol self-consistency: every identifier used is defined in the sample, in a prior step, or traced to a real file (with path).
 - **Run Declaration is mandatory** — the page must end by honestly declaring whether the writer actually built and ran it (✅, with recorded output) or only statically verified it (⚠️).
+
+### Sub-pages (default-split)
+
+A feature's Quick Start is normally **split into sub-pages** rather than one long page. Split when the page would exceed **~300 lines** or cover more than **3 distinct topics** — group by step or by operation:
+
+```
+00_{Feature}/                        ← overview + table of contents
+├── index.md
+├── 00_prerequisites/
+├── 01_setup/
+├── 02_{operation-a}/
+├── 03_{operation-b}/
+└── 09_verification/                 ← Verification + Complete Code + Run Declaration
+```
+
+- Each sub-page keeps its own **Expected result** assertions.
+- The parent `index.md` is a short overview that links the sub-pages; do not duplicate their body there.
+- The **Run Declaration** footer stays at the end of the last content page (the one holding the Complete Code).
 
 ### Structure
 
@@ -40,9 +58,9 @@ Every Quick Start is a **contract that a human can reproduce end-to-end**. On to
 
 ### 1. Prerequisites
 
-- {SDK/runtime}: exact version (e.g. .NET SDK 8.0.400)
+- **Supported target(s) from the project's declared `TargetFrameworks`** (e.g. `netstandard2.0;net6.0`) — the Demo's runtime is only a *tested* configuration, never the requirement
+- {SDK/runtime}: version required by the supported target (e.g. .NET SDK 6.0+ for `net6.0`)
 - {Package manager}: version
-- {Target framework}: (e.g. net8.0)
 - {Required services}: (e.g. a running database, API key) — and how to obtain/start them
 - If any prerequisite cannot be verified locally, the Run Declaration below MUST be ⚠️.
 

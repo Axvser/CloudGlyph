@@ -76,7 +76,7 @@ Ultimately, the directory will present the following structure. These are five f
 
 ⚙ Complex features may nest further sub-capabilities (e.g. `00_user-registration/00_email-verification/`), obeying the same two-digit + kebab-case rule at every level.
 
-⚙ **Page-focus limit:** when a single page would exceed ~500 lines or cover more than 3 distinct topics, split it into sub-pages. This is the same principle as the SE Analysis sub-page depth rules — apply it uniformly, not as a separate rule.
+⚙ **Page-focus limit (default-split):** a feature page is NOT a single monolithic document — splitting is the default, not the exception. Split a page when it would exceed **~300 lines** OR cover more than **3 distinct topics**, along capability/operation/endpoint boundaries (e.g. `00_{Feature}/00_{Operation}/index.md`). The parent `index.md` becomes a short overview that links its sub-pages. When in doubt, split earlier. Apply uniformly across QuickStart / API / SE Analysis.
 
 **Illustrative example only — not a fixed requirement.** Fictional project "Acme Console" with three features (`user-registration`, `data-export`, `theme`). Every directory contains an `index.md`.
 
