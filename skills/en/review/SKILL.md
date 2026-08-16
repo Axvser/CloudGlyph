@@ -6,10 +6,22 @@ Review and correct each deliverable one by one
 
 ## Checklist
 
-### Feature Inventory Coverage Audit
+### Coverage Reconciliation Matrix (HARD GATE)
 
-- [ ] Cross-reference the「Feature Inventory」produced by the Analysis Paradigm, verifying every feature is documented across Quick Start / API Reference / SE Analysis
-- [ ] Immediately fill any missing features
+Build the matrix from the Feature Inventory's Coverage Status column. The matrix MUST be written into the Review output — it is a deliverable, not a thought exercise.
+
+| Feature | Evidence | QuickStart | API | SE Analysis | Status |
+|---|---|---|---|---|---|
+| User registration | Demo | ✅ | ✅ | ✅ | PASS |
+| Data export | Test | ✅ | ✅ | ❌ missing data-flow sub-page | FAIL |
+| Theme customization | *inferred* | ✅ | ⚠️ partial: `setTheme` only | ✅ | PASS (residual) |
+
+Rules:
+
+- **Features with Demo/Test evidence MUST be ✅ across all three dimensions (QuickStart / API / SE Analysis). Any ❌ ⇒ the entire Review FAILS.** Fix immediately and re-run before continuing.
+- **Only *inferred* features may carry residual ⚠️ items**, and each residual MUST state a one-line reason (e.g. "API surface not fully covered by evidence").
+- After reconciliation, write the final status back into the Feature Inventory (`PASS` / `FAIL` / `RESIDUAL`).
+- If the inventory carries `TODO` or a stale status that a completed page contradicts → FAIL; the status machine was not respected.
 
 ---
 
@@ -43,6 +55,16 @@ For **every page** in the Wiki, extract all code blocks containing API reference
 - [ ] **Property/field names** — every property or field referenced must be present on the declared type
 - [ ] **Removed/deprecated APIs** — flag any doc references to deprecated or removed members for correction
 - [ ] **No fabricated code** — every code block must trace back to a real source file
+
+---
+
+### Reproducibility Spot-check
+
+- [ ] Every QuickStart has a mandatory **Prerequisites** block (SDK/runtime/package-manager versions, target framework, required services)
+- [ ] Every numbered step states an observable **Expected result**
+- [ ] The complete-code block contains **no `...` / ellipses**; every identifier is defined in the sample, a prior step, or traced to a real file
+- [ ] The page ends with a **Run Declaration** footer: `✅ actually built/ran` (recorded output) or `⚠️ not actually run` (static verification only, marked)
+- [ ] For any `✅` declaration, the recorded output matches the step's stated expected results
 
 ---
 
@@ -84,6 +106,8 @@ For **every page** in the Wiki, extract all code blocks containing API reference
 1. Walk through the checklist item by item; **fix issues immediately** before moving to the next item
 2. Code authenticity issues → search source to confirm signatures, then fix docs
 3. Diagram syntax issues → fix and re-validate
-4. Run `python gen_tree.py`, confirm no pages are missing
-5. Run the project's build command, confirm compilation succeeds
-6. Only after all items are ✅, mark the quality gate as passed
+4. Reconcile the **Coverage Reconciliation Matrix**: if any Demo/Test feature has a ❌, or the matrix was not written, the quality gate FAILS
+5. Run the **Reproducibility Spot-check** against the QuickStart pages
+6. Run `python gen_tree.py`, confirm no pages are missing
+7. Run the project's build command, confirm compilation succeeds
+8. Only after all items are ✅, mark the quality gate as passed
