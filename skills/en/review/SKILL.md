@@ -86,7 +86,8 @@ Diagrams and math are validated by the **actual rendering engines** — ground t
 - [ ] Numeric prefixes follow conventions (e.g. `01_`, `02_`)
 - [ ] `index.md` exists in **every** page directory (root and sub-pages)
 - [ ] Code block indentation uses real spaces, not tab characters, matching the Code Style Conventions
-- [ ] No local Markdown links (`[text](local/path/)`) — use relative navigation via the tree instead
+- [ ] **Links** — every link is exactly one of the three allowed kinds and resolves (see 【Links & Navigation】): external `http(s):`/`mailto:` opens in a browser; a same-language cross-page link resolves to an existing page directory in the same language root; a `#…` anchor equals the auto slug of a heading on that same page. No other local/absolute/cross-language links.
+- [ ] **Run the link validator** — `python validate-links.py <Wiki_Root>` reports no ERROR (each `#…` matches a real heading slug in that file; each cross-page target exists under the same language root)
 - [ ] Pages exceeding **~300 lines / 3 topics** are split into sub-pages, with the parent `index.md` acting as an overview/table of contents
 - [ ] **Prune untracked entries** — Any document page or directory **not produced by the current workflow** must be deleted. If removing all affected files empties a parent directory and that does not break the current output structure, the empty directory must also be removed.
 
@@ -112,8 +113,9 @@ Diagrams and math are validated by the **actual rendering engines** — ground t
 1. Walk through the checklist item by item; **fix issues immediately** before moving to the next item
 2. Code authenticity issues → search source to confirm signatures, then fix docs
 3. Diagram/KaTeX issues → run the real-engine validators (`validate-plantuml.py --engine java`, `validate-mermaid.js`, `validate-katex.js`), fix every ERROR, re-run until clean
-4. Reconcile the **Coverage Reconciliation Matrix**: if any Demo/Test feature has a ❌, or the matrix was not written, the quality gate FAILS
-5. Run the **Reproducibility Spot-check** against the QuickStart pages
-6. Run `python gen_tree.py`, confirm no pages are missing
-7. Run the project's build command, confirm compilation succeeds
-8. Only after all items are ✅, mark the quality gate as passed
+4. Link issues → run `python validate-links.py <Wiki_Root>`, fix every ERROR, re-run until clean
+5. Reconcile the **Coverage Reconciliation Matrix**: if any Demo/Test feature has a ❌, or the matrix was not written, the quality gate FAILS
+6. Run the **Reproducibility Spot-check** against the QuickStart pages
+7. Run `python gen_tree.py`, confirm no pages are missing
+8. Run the project's build command, confirm compilation succeeds
+9. Only after all items are ✅, mark the quality gate as passed

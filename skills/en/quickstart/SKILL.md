@@ -46,7 +46,7 @@ A feature's Quick Start is normally **split into sub-pages** rather than one lon
 ```
 
 - Each sub-page keeps its own **Expected result** assertions.
-- The parent `index.md` is a short overview that links the sub-pages; do not duplicate their body there.
+- The parent `index.md` is a short overview that links the sub-pages using the cross-page link syntax in 【Links & Navigation】; do not duplicate their body there.
 - The **Run Declaration** footer stays at the end of the last content page (the one holding the Complete Code).
 
 ### Structure

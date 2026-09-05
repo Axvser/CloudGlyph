@@ -14,6 +14,8 @@ Create a welcome page from a template that fits the current project
 
 ✔ Feature entries may be removed
 
+✔ Feature cards may be made **clickable** so they navigate to the page they describe: wrap a card's inner content in an `<a>` whose `href` follows the same-language cross-page link syntax in 【Links & Navigation】. From `0_Welcome/index.md`, sibling top-level sections live one level up — e.g. `<a href="../2_API/index.md">…</a>`; adapt the folder name (numeric prefix included) to this wiki's real tree. Do not alter layout, colors, or animations.
+
 ## Output Location
 
 Wiki_Root/0_Welcome/index.md
