@@ -51,6 +51,11 @@ PARITY_PAIRS = [
     ("TargetFrameworks", "TargetFrameworks"),
     ("Code Authenticity", "代码真实性"),
     ("`index.md` exists in **every**", "每个页面目录（根目录和子页面）都存在"),
+    # hierarchy / outline-first rules (added with page-size gate)
+    ("Page-focus limit", "页面聚焦上限"),
+    ("Outline-first", "大纲先行"),
+    ("leaf budget", "叶子预算"),
+    ("cg:atomic", "cg:atomic"),
 ]
 
 

@@ -6,12 +6,23 @@ CloudGlyph skill relies on but that previously had no machine check:
 
   1. **index.md coverage**  — every directory under a language root MUST contain an
      index.md (it may be empty). A directory without one is not a valid page dir.
-  2. **Cross-language structural parity** — when multiple languages exist, each must
+  2. **Page-size budget & outline discipline** — a page without sub-pages is a LEAF:
+     when it exceeds the leaf budget (see --max-leaf-lines, default ~300 → WARN /
+     above hard cap → ERROR) it must be split into deeper `NN_` sub-pages. A page
+     WITH sub-pages is a PARENT: its index.md must be a short overview (default
+     --max-overview-lines) and must link **every** direct child page directory.
+     These two rules make over-long pages fail the gate instead of silently passing,
+     so writers (and independent reviewers) split by feature/operation rather than
+     letting one page grow unbounded.
+     Length checks are skipped for pages under the Copyright dimension (verbatim
+     license/AUTHORS text) and for pages whose index.md starts with `<!-- cg:atomic -->`
+     (an explicit "this page is intentionally atomic" declaration).
+  3. **Cross-language structural parity** — when multiple languages exist, each must
      have the SAME tree *shape*. Comparison is by numeric-prefix topology only, so
      translated directory names (en `00_user-registration` vs zh `00_用户注册`) still
      match, while a page/sub-page that exists in one language but not the other is an
      ERROR. (Names are intentionally ignored here — translation makes them differ.)
-  3. **QuickStart ⇄ API feature-set parity (within one language)** — the immediate
+  4. **QuickStart ⇄ API feature-set parity (within one language)** — the immediate
      feature directories under the `1_*` (QuickStart) and `2_*` (API) top-level
      dimensions must be identical sets. Run per language, names compared literally.
      Only enforced when both dimensions are present; otherwise a WARN is emitted.
@@ -19,12 +30,14 @@ CloudGlyph skill relies on but that previously had no machine check:
 Structural-consistency items that need the *text* of pages (cross-page links, anchor
 slugs, code authenticity, cross-dimension naming at depth) remain the job of
 validate-links.py and the Review checklist — this script is the machine half of the
-"every directory must contain index.md" and "cross-language parity" rules.
+"every directory must contain index.md", "split long pages", "parent overview links
+its children" and "cross-language parity" rules.
 
 Usage:
-    python validate-structure.py                 # auto-detect content root, all languages
-    python validate-structure.py --lang en       # only one language dir
-    python validate-structure.py <dir-or-file>   # scan an explicit path (a language root or the content root)
+    python validate-structure.py                  # auto-detect content root, all languages
+    python validate-structure.py --lang en        # only one language dir
+    python validate-structure.py <dir-or-file>    # scan an explicit path (a language root or the content root)
+    python validate-structure.py --report-lines   # also print per-page line/child metrics
 
 Exit code: 0 = clean, 1 = at least one ERROR.
 """
@@ -38,6 +51,13 @@ from pathlib import Path
 SKIP_DIRS = {".git", "node_modules", "bin", "obj", "__pycache__"}
 
 _PREFIX_RE = re.compile(r"^(\d+)_")
+_ATOMIC_MARKER = "cg:atomic"
+_LINK_DEST_RE = re.compile(r"\]\(\s*([^)\s>]+)")
+
+# Page budget (counted as non-empty lines of index.md).
+LEAF_WARN_LINES = 300    # skill spec ≈ "~300 lines": warn above
+LEAF_HARD_LINES = 340    # above this a leaf page FAILS unless exempt
+OVERVIEW_MAX_LINES = 200  # a parent index.md with children must be a short overview
 
 
 def _prefix_num(name: str) -> int | None:
@@ -61,21 +81,110 @@ def lang_roots(target: Path, lang: str | None) -> list[Path]:
     return roots
 
 
+def _is_atomic(index_path: Path) -> bool:
+    """A page opts out of page-size checks by starting with `<!-- cg:atomic -->`."""
+    try:
+        with open(index_path, encoding="utf-8-sig", errors="replace") as f:
+            head = f.read(512)
+    except OSError:
+        return False
+    return _ATOMIC_MARKER in head
+
+
+def _nonempty_lines(index_path: Path) -> list[str]:
+    try:
+        with open(index_path, encoding="utf-8-sig", errors="replace") as f:
+            return [ln for ln in f.read().splitlines() if ln.strip()]
+    except OSError as e:
+        print(f"{index_path}: ERROR reading file: {e}")
+        return []
+
+
 def check_index_coverage(root: Path) -> tuple[int, int]:
     """Every directory under *root* (recursively, excluding the root itself) must have index.md."""
     errors = 0
-    for dirpath, dirnames, _files in os.walk(root):
+    for dirpath, _dirnames, _files in os.walk(root):
         p = Path(dirpath)
         if p == root:
             continue
-        rel = p.relative_to(root).as_posix()
         if any(seg in SKIP_DIRS for seg in p.relative_to(root).parts):
             continue
         if not (p / "index.md").is_file():
             errors += 1
-            print(f"{root.name}/{rel}: ERROR directory has no index.md"
+            print(f"{root.name}/{p.relative_to(root).as_posix()}: ERROR directory has no index.md"
                   f" (every directory in a page tree must contain index.md, even an empty one)")
     return errors, 0
+
+
+def _direct_child_page_dirs(page_dir: Path) -> list[str]:
+    """Names of immediate subdirectories of *page_dir* that are themselves pages (have index.md)."""
+    return sorted(
+        e for e in os.listdir(page_dir)
+        if (page_dir / e).is_dir() and (page_dir / e / "index.md").is_file()
+    )
+
+
+def _link_destinations(content: str) -> list[str]:
+    return [d for d in _LINK_DEST_RE.findall(content) if not d.startswith("#")]
+
+
+def check_pages(root: Path, warn_lines: int, hard_lines: int,
+                overview_max: int, report: bool) -> tuple[int, int, list[str]]:
+    """Per-page budget + parent-overview/must-link-children rules."""
+    errors = 0
+    warnings = 0
+    metrics: list[str] = []
+
+    for dirpath, _dirnames, _files in os.walk(root):
+        page_dir = Path(dirpath)
+        if page_dir == root:
+            continue
+        index_path = page_dir / "index.md"
+        if not index_path.is_file():
+            continue  # missing index.md already reported by check_index_coverage
+
+        rel = page_dir.relative_to(root).as_posix()
+        lines = _nonempty_lines(index_path)
+        child_names = _direct_child_page_dirs(page_dir)
+
+        # Copyright dimension (prefix 4) holds verbatim license/attribution text.
+        top_seg = rel.split("/", 1)[0]
+        exempt_length = _prefix_num(top_seg) == 4 or _is_atomic(index_path)
+        is_parent = len(child_names) > 0
+
+        if not is_parent:
+            n = len(lines)
+            if not exempt_length and n > hard_lines:
+                errors += 1
+                print(f"{root.name}/{rel}: ERROR leaf page is {n} non-empty lines"
+                      f" (hard cap {hard_lines}). Split it into `NN_` sub-pages under this directory"
+                      f" (outline-first), or mark the page atomic with `<!-- {_ATOMIC_MARKER} -->` first.")
+            elif not exempt_length and n > warn_lines:
+                warnings += 1
+                print(f"{root.name}/{rel}: WARN leaf page is {n} non-empty lines"
+                      f" (split budget ≈ {warn_lines}). Consider splitting into `NN_` sub-pages.")
+        else:
+            n = len(lines)
+            if not exempt_length and n > overview_max:
+                errors += 1
+                print(f"{root.name}/{rel}: ERROR parent index.md with {len(child_names)} child page(s)"
+                      f" is {n} lines (overview cap {overview_max}). Move the body into sub-pages;"
+                      f" the parent index.md should only overview + link its children.")
+            # A non-blank parent must link every direct child page dir.
+            if lines:
+                dests = _link_destinations("\n".join(lines))
+                for child in child_names:
+                    if not any(child in d for d in dests):
+                        errors += 1
+                        print(f"{root.name}/{rel}: ERROR parent index.md does not link child page"
+                              f" '{child}' — add a same-language cross-page link to every child"
+                              f" (e.g. `[..]({child}/index.md)`).")
+
+        if report:
+            kind = "parent" if is_parent else "leaf"
+            metrics.append(f"  {rel}  ({kind}, {len(lines)} lines, {len(child_names)} child page(s))")
+
+    return errors, warnings, metrics
 
 
 def _shape_key(name: str) -> str:
@@ -95,20 +204,6 @@ def canonical_shape(dir_path: Path) -> tuple:
         children.append((_shape_key(entry), canonical_shape(child)))
     children.sort(key=lambda kv: kv[0])
     return tuple(kv[1] for kv in children) if children else ()
-
-
-def describe_shape(shape: tuple, indent: int = 0) -> str:
-    if not shape:
-        return ""
-    lines = []
-    for node in shape:
-        if not node:
-            lines.append("  " * indent + "- (page)")
-        else:
-            lines.append("  " * indent + "- (has sub-pages)")
-            for sub in node:
-                lines.append("  " * (indent + 1) + repr(sub))
-    return "\n".join(lines) if lines else ""
 
 
 def check_cross_language_parity(roots: list[Path]) -> tuple[int, int]:
@@ -176,6 +271,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Validate wiki directory-structure rules")
     parser.add_argument("path", nargs="?", help="file or directory to scan (default: auto-detect content root)")
     parser.add_argument("--lang", help="only scan this language subdir (e.g. en, zh)")
+    parser.add_argument("--max-leaf-lines", type=int, default=LEAF_WARN_LINES,
+                        help=f"leaf split budget / warn threshold (default {LEAF_WARN_LINES})")
+    parser.add_argument("--max-leaf-hard", type=int, default=LEAF_HARD_LINES,
+                        help=f"leaf hard cap that FAILS (default {LEAF_HARD_LINES})")
+    parser.add_argument("--max-overview-lines", type=int, default=OVERVIEW_MAX_LINES,
+                        help=f"parent index.md overview cap (default {OVERVIEW_MAX_LINES})")
+    parser.add_argument("--report-lines", action="store_true",
+                        help="print per-page line/child-page metrics")
     args = parser.parse_args()
 
     if args.path:
@@ -196,6 +299,14 @@ def main() -> None:
         errors, warns = check_index_coverage(root)
         total_errors += errors
         total_warns += warns
+        errors, warns, metrics = check_pages(root, args.max_leaf_lines, args.max_leaf_hard,
+                                             args.max_overview_lines, args.report_lines)
+        total_errors += errors
+        total_warns += warns
+        if args.report_lines and metrics:
+            print(f"[structure] {root.name} page metrics:")
+            for m in metrics:
+                print(m)
         errors, warns = check_quickstart_api_parity(root)
         total_errors += errors
         total_warns += warns
