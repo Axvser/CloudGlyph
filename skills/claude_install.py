@@ -95,6 +95,19 @@ def install(claude_root: str, lang: str) -> None:
     else:
         print(f"[claude_install] WARNING no skills/{lang} module tree to ship templates from", file=sys.stderr)
 
+    # Ship the independent reviewer agent definition so the installed skill can hand
+    # its Review phase to a sub-agent that did not write the content (see the Review
+    # module's "Reviewer Assignment"). Placed under <claude_root>/agents/wiki-reviewer.md.
+    reviewer_src = os.path.join(SKILLS_ROOT, "wiki-reviewer.md")
+    if os.path.isfile(reviewer_src):
+        agents_dir = os.path.join(claude_root, "agents")
+        os.makedirs(agents_dir, exist_ok=True)
+        reviewer_dst = os.path.join(agents_dir, "wiki-reviewer.md")
+        shutil.copy2(reviewer_src, reviewer_dst)
+        print(f"[claude_install] Agent: {reviewer_dst}")
+    else:
+        print(f"[claude_install] WARNING wiki-reviewer.md not found next to the installer", file=sys.stderr)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Install assembled SKILL.md into a Claude code working directory")

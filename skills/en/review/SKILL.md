@@ -4,6 +4,30 @@
 
 Review and correct each deliverable one by one
 
+## Reviewer Assignment
+
+### Delegate by default
+
+Reviewing your own output invites self-approval: the fixes you already believe in, the samples you are already convinced are correct. Whenever the run environment can launch an **independent reviewer** — a separate sub-agent whose context did NOT take part in the writing phases (e.g. Claude: spawn the `wiki-reviewer` sub-agent installed with this SKILL, or any fresh-context sub-agent; other hosts: their equivalent) — you MUST delegate this phase to it. This is the default path, not an optimization. A writer judging its own Review checklist will tend to wave itself through; an independent reviewer does not share that bias.
+
+Hand the reviewer a self-contained brief:
+
+- **Paths** — Project_Root; Wiki_Root for each selected language; the Feature Inventory working file; the validator scripts directory.
+- **Access** — read-only. The reviewer reports findings; the WRITER applies fixes.
+- **Instructions** — trust nothing the writer asserted. Re-check code authenticity and the public API surface against Demo / test files, never against the writer's prose. Run every machine validator itself (`validate-links.py`, `validate-structure.py`, `validate-plantuml.py --engine java`, `validate-mermaid.js`, `validate-katex.js`, `gen_tree.py`) and paste the raw output. Produce the Coverage Reconciliation Matrix independently from the Feature Inventory.
+- **Output** — an ordered FAIL / PASS list with file paths, plus the Coverage Reconciliation Matrix.
+
+After the report returns, the WRITER triages and fixes the findings only — and never "re-reviews" and clears its own findings.
+
+### Fallback when no separate agent exists
+
+If the platform cannot spawn an independent reviewer (single-context hosts), review in-process while assuming you will rubber-stamp your own work, and counter it:
+
+- Every machine validator runs and its raw output is cited — a PASS quotes output, not intent.
+- For every page, name one thing you would challenge if you had NOT authored it, then fix or justify it.
+- Write the Coverage Reconciliation Matrix from the Feature Inventory file, not from memory.
+- Anything that can only be confirmed "by the author" is downgraded to a residual and marked as such.
+
 ## Checklist
 
 ### Coverage Reconciliation Matrix (HARD GATE)
@@ -111,6 +135,8 @@ Diagrams and math are validated by the **actual rendering engines** — ground t
 ---
 
 ## Pre-Commit Verification Flow
+
+> **Assign the review first** — when an independent reviewer sub-agent can be launched, delegate the entire checklist below to it (see Reviewer Assignment) and fix what it reports; the in-process fallback applies only to hosts without sub-agents.
 
 1. Walk through the checklist item by item; **fix issues immediately** before moving to the next item
 2. Code authenticity issues → search source to confirm signatures, then fix docs
