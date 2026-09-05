@@ -49,7 +49,7 @@ public partial class DocumentViewModel : ObservableObject
     private LanguageOption _selectedLanguage = new(DefaultLanguage, "🌐 English");
 
     [ObservableProperty]
-    private string _title = "VeloxDev Docs";
+    private string _title = "Cloud Glyph";
 
     [ObservableProperty]
     private bool _isLoading;
@@ -61,8 +61,36 @@ public partial class DocumentViewModel : ObservableObject
 
     private async Task InitializeAsync()
     {
+        await LoadSiteConfigAsync();
         await LoadLanguagesAsync();
         await LoadTreeAsync();
+    }
+
+    /// <summary>
+    /// Reads the site title from <c>Assets/Docs/config/site.json</c> (e.g. the product name shown in
+    /// the window title). Falls back to the default <see cref="Title"/> if the asset is absent.
+    /// A child wiki repo should edit its own site.json — never hardcode a product name in code.
+    /// </summary>
+    private async Task LoadSiteConfigAsync()
+    {
+        try
+        {
+            var uri = new Uri("avares://CloudGlyph/Assets/Docs/config/site.json");
+            using var stream = AssetLoader.Open(uri);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            var json = await reader.ReadToEndAsync();
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("title", out var title) && title.ValueKind == JsonValueKind.String)
+            {
+                var value = title.GetString();
+                if (!string.IsNullOrWhiteSpace(value))
+                    Title = value.Trim();
+            }
+        }
+        catch
+        {
+            // Asset missing/malformed → keep the default Title.
+        }
     }
 
     partial void OnSelectedLanguageChanged(LanguageOption value)

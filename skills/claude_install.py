@@ -50,14 +50,50 @@ def regenerate_skill(lang: str) -> None:
         sys.exit(1)
 
 
-def install(claude_root: str) -> None:
-    """Copy SKILL.md into .claude/skills/{SKILL_NAME}/SKILL.md under claude_root."""
+def install(claude_root: str, lang: str) -> None:
+    """Copy SKILL.md into .claude/skills/{SKILL_NAME}/SKILL.md under claude_root,
+    then ship each module's pristine Templates/*.md next to it.
+
+    The aggregated SKILL.md embeds template bodies as JSON-escaped table cells (for
+    agents whose skill loader accepts a single file). Shipping the raw files as well
+    gives agents that CAN read sibling files (Claude skills, for example) the exact
+    original template with no decode step — see the welcome-page module's
+    "Raw file (preferred)" note.
+    """
     target_dir = os.path.join(claude_root, "skills", SKILL_NAME)
     os.makedirs(target_dir, exist_ok=True)
     target_path = os.path.join(target_dir, "SKILL.md")
 
     shutil.copy2(SKILL_OUTPUT, target_path)
     print(f"[claude_install] Installed: {target_path}")
+
+    # Copy skills/<lang>/<module>/Templates/*.md into <target>/Templates/.
+    # Flat filename first; on collision fall back to Templates/<module>/<file>.
+    lang_root = os.path.join(SKILLS_ROOT, lang)
+    seen: set[str] = set()
+    if os.path.isdir(lang_root):
+        for module in sorted(os.listdir(lang_root)):
+            templates_dir = os.path.join(lang_root, module, "Templates")
+            if not os.path.isdir(templates_dir):
+                continue
+            for fname in sorted(os.listdir(templates_dir)):
+                if not fname.lower().endswith(".md"):
+                    continue
+                src = os.path.join(templates_dir, fname)
+                if fname in seen:
+                    dst_dir = os.path.join(target_dir, "Templates", module)
+                    os.makedirs(dst_dir, exist_ok=True)
+                    dst = os.path.join(dst_dir, fname)
+                    print(f"[claude_install] Template (collision): {dst}")
+                else:
+                    seen.add(fname)
+                    dst_dir = os.path.join(target_dir, "Templates")
+                    os.makedirs(dst_dir, exist_ok=True)
+                    dst = os.path.join(dst_dir, fname)
+                shutil.copy2(src, dst)
+                print(f"[claude_install] Template: {dst}")
+    else:
+        print(f"[claude_install] WARNING no skills/{lang} module tree to ship templates from", file=sys.stderr)
 
 
 def main():
@@ -104,7 +140,7 @@ def main():
     regenerate_skill(args.lang)
 
     # 2. Copy to target
-    install(claude_root)
+    install(claude_root, args.lang)
 
     print("[claude_install] Done.")
 

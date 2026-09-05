@@ -132,7 +132,7 @@ Wiki_Root/
 
 ⚙ A Wiki page may only contain these kinds of links:
 
-1. **External** — targets beginning `https://`, `http://`, or `mailto:`. They open in the system browser. Use sparingly.
+1. **External** — targets beginning `https://`, `http://`, `mailto:`, or `tel:`. They open in the system browser / mail client / dialer. Use sparingly.
 2. **Same-language page link (cross-page)** — a relative Markdown link whose destination resolves like a filesystem path (honoring `.` / `..`) to another page **directory inside the same language tree**. End the target with the directory path, an explicit `/index.md`, or a trailing `/`. Use **real folder names including numeric prefixes** (`0_Welcome`, `00_user-registration`); never link to a display title. Links must never cross languages.
    Examples from page `1_QuickStart/00_user-registration/index.md`:
    - child page inside the same feature: `[Email verification](00_email-verification/index.md)`
