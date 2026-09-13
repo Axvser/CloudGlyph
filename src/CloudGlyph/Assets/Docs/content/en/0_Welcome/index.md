@@ -11,11 +11,6 @@
     0% { opacity: 0; transform: scale(0.85); }
     100% { opacity: 1; transform: scale(1); }
   }
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-color, #4a9eff) 0%, transparent); }
-    50% { box-shadow: 0 0 18px 2px color-mix(in srgb, var(--accent-color, #4a9eff) 25%, transparent); }
-  }
-
   .cg-wrapper * {
     will-change: transform, opacity;
   }
@@ -76,14 +71,11 @@
     animation: shimmer 4s linear infinite;
   }
 
-  .glow-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    margin: 0 4px;
-    vertical-align: middle;
-    animation: glow-pulse 1.8s ease-in-out infinite;
+  /* A feature card is a link. Keeps the link invisible as a link. */
+  .feat-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
   }
   .gradient-rule {
     width: clamp(36px, 8vw, 60px);
@@ -175,13 +167,18 @@
     </div>
   </div>
 
+  <!-- Feature cards.
+       In a produced wiki every card is wrapped in
+       <a class="feat-link" href="../1_QuickStart/{feature}/index.md">…</a> so the card
+       itself is the link to that feature's QuickStart page — see the welcome-page
+       skill. This seed ships no sibling pages, so its cards stay plain cards. -->
   <!-- Feature flex -->
   <div class="cg-feats">
     <div class="feat-card cg-feat" style="animation-delay: 0s;">
       <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">📝</span> Markdown<br><span style="opacity: 0.6;">footnotes · tables · tasks</span>
     </div>
     <div class="feat-card cg-feat" style="animation-delay: 0.05s;">
-      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🧮</span> KaTeX<br><span style="opacity: 0.6;">inline $ $ · display $$ $$</span>
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🧮</span> KaTeX<br><span style="opacity: 0.6;">inline and display math</span>
     </div>
     <div class="feat-card cg-feat" style="animation-delay: 0.1s;">
       <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🔍</span> Code Highlight<br><span style="opacity: 0.6;">highlight.js · VS Code style</span>
@@ -191,6 +188,9 @@
     </div>
     <div class="feat-card cg-feat" style="animation-delay: 0.2s;">
       <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🌿</span> PlantUML<br><span style="opacity: 0.6;">auto dark/light SVG</span>
+    </div>
+    <div class="feat-card cg-feat" style="animation-delay: 0.225s;">
+      <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">📈</span> Function Plots<br><span style="opacity: 0.6;">y = f(x) · parametric · polar</span>
     </div>
     <div class="feat-card cg-feat" style="animation-delay: 0.25s;">
       <span class="feat-icon" style="font-size: 1.3em; margin-right: 6px;">🎬</span> Video<br><span style="opacity: 0.6;">YouTube · Bilibili · Vimeo</span>
@@ -203,14 +203,6 @@
     </div>
   </div>
 
-  <p style="opacity: 0.4; font-size: 0.85em; margin-top: 1em;">
-    <span class="glow-dot" style="background: #4a9eff; animation-delay: 0s;"></span>
-    Agent‑friendly
-    <span class="glow-dot" style="background: #a78bfa; animation-delay: 0.3s;"></span>
-    No database
-    <span class="glow-dot" style="background: #f472b6; animation-delay: 0.6s;"></span>
-    Open source · MIT
-  </p>
 </div>
 
 
