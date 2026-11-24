@@ -11,11 +11,11 @@ Strictly follow the workflow defined in this SKILL to produce Wiki documentation
 
 > CloudGlyph_Git:[https://github.com/Axvser/CloudGlyph][ReadOnly][Template Repository] - Cloud Glyph repository address
 
-> CloudGlyph_Child_Git:[request] - Local Wiki repository root. This Wiki repository is an independent repo created from the Cloud Glyph:[Template Repository]. It is not counted in Wiki analysis or writing.
+> CloudGlyph_Child_Git:[request] - Checkout of the wiki repo: an independent repo created from the Cloud Glyph:[Template Repository] and mounted as a git submodule at `Wiki/` inside the host repo (Project_Root). It is not counted in Wiki analysis or writing.
 
-> Project_Root:[request] - Root directory of the project to be documented
+> Project_Root:[request] - Root directory of the host repo to be documented; this is the repo that contains the `Wiki/` submodule
 
-> MainSKILL_Path:[CloudGlyph_Child_Git/skills/SKILL.md] - Path to the current skill
+> MainSKILL_Path:[request] - Path to the installed copy of this skill. It does not locate the wiki repo
 
 > Wiki_Root:[CloudGlyph_Child_Git/src/CloudGlyph/Assets/Docs/content/{languages}/] - Root directory for output documentation, dynamically divided by language.
 

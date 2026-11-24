@@ -13,11 +13,11 @@ description: 分析工程源码，产出美观、规范的Wiki文档
 
 > CloudGlyph_Git:[https://github.com/Axvser/CloudGlyph][ReadOnly][Template Repository] - Cloud Glyph 仓库地址
 
-> CloudGlyph_Child_Git:[request] - 本地Wiki仓库根目录，该Wiki仓库是基于Cloud Glyph:[Template Repository]创建的独立仓库，自身不计入Wiki分析或编写
+> CloudGlyph_Child_Git:[request] - Wiki 仓库的检出目录：基于 Cloud Glyph:[Template Repository] 创建的独立仓库，作为 git 子模块挂载在宿主仓库（Project_Root）的 `Wiki/` 下，自身不计入 Wiki 分析或编写
 
-> Project_Root:[request] - 待文档化的项目的根目录
+> Project_Root:[request] - 待文档化的宿主仓库根目录，也就是包含 `Wiki/` 子模块的仓库
 
-> MainSKILL_Path:[CloudGlyph_Child_Git/skills/SKILL.md] - 当前技能所在路径
+> MainSKILL_Path:[request] - 当前技能的已安装副本路径，不再用于定位 Wiki 仓库
 
 > Wiki_Root:[CloudGlyph_Child_Git/src/CloudGlyph/Assets/Docs/content/{languages}/] - 产出文档的根目录，按language划分的动态变量，例如编写英语时，它就是CloudGlyph_Child_Git/src/CloudGlyph/Assets/Docs/content/en/，Agent仅允许在Wiki_Root下编辑文档内容
 
